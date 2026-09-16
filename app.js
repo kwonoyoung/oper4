@@ -181,6 +181,7 @@
   $('btnAddPost').onclick=()=>{addRow({scope:'post',desc:'근무'});recalculate();saveLater();};
   $('btnAddLeave').onclick=()=>{addRow({scope:'post',desc:'질병휴직',rate:0,kind:'sick'});recalculate();saveLater();};
   $('btnAddDegree').onclick=()=>{addRow({scope:'pre',desc:'대학원 학위',kind:'degree',cap:24});recalculate();saveLater();};
+  $('btnApplyCase').onclick=applyCasePreset;
   $('btnSave').onclick=()=>save(true);$('btnPrint').onclick=()=>window.print();$('btnExample').onclick=example;$('btnExcel').onclick=exportExcel;
   $('btnExportJson').onclick=()=>download('교육공무원_호봉획정_백업.json',JSON.stringify(collect(),null,2),'application/json');
   $('jsonFile').onchange=async e=>{try{if(e.target.files[0]){apply(JSON.parse(await e.target.files[0].text()));save();toast('자료를 불러왔습니다.');}}catch(err){alert('불러오기 실패: '+err.message);}finally{e.target.value='';}};
