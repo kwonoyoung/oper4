@@ -160,13 +160,22 @@
     };
     if(cases[p]){apply({version:2,settings:{...base,...cases[p]},careers:cases[p].careers});saveLater();toast('사례집 대표 사례를 적용했습니다. 증빙자료에 맞게 수정하세요.');}
   }
+  function toSiteRow(x){ return {from:x.start,to:x.end,start:x.start,text:x.desc,pct:x.rate,note:'',cap:Number(x.cap)||0,part:x.part||null}; }
   function exportExcel(){
-    recalculate();const r=lastResult,s=collect(),c=r.result;
-    const data=[{name:'호봉획정 결과',rows:[['항목','결과'],['사정호봉',$('resultStep').textContent],['차기승급일',$('nextPromotion').textContent],['환산 총 경력',H.text(H.split(r.total))],['임용 전 합계',H.text(H.split(r.preTotal))],['임용 후 합계',H.text(H.split(r.post.total))],['보정일',r.post.correction],['학력 가감',r.education],['잔여월일',$('remaining').textContent],['입력 확인',r.issues.join('\n')],['안내','현재 계산 결과(값)입니다. 입력 변경은 웹 화면에서 다시 계산하세요.']]},
-      {name:'입력 자료',rows:[['항목','값'],...settings.map(id=>[$(id).labels?.[0]?.textContent?.trim()||id,s.settings[id]]),[],['구분','시작일','산입 마지막 날','내용','환산율','특수 경력','학위 상한(개월)','시간강사 방식','주당 시간','총 시간','평균 시간'],...s.careers.map(x=>[x.scope==='post'?'임용 후':'임용 전',x.start,x.end,x.desc,x.rate,x.kind,x.cap,x.part?.method||'',x.part?.hours||'',x.part?.total||'',x.part?.avg||''])]},
-      {name:'승급기록',rows:[['발령일','구분','호봉','근무년수','잔여월','잔여일','차기승급일'],...r.events.map(e=>[H.iso(e.date),e.type,e.step,e.period.y,e.period.m,e.period.d,s.settings.reason==='계약제교원 임용'&&e.date===H.parse(s.settings.standardDate)?'없음':H.iso(e.next)])]},
-      {name:'육아휴직',rows:[['자녀','시작일','산입 마지막 날','전체 기간','산입 기간'],...Object.entries(r.post.children).flatMap(([child,items])=>items.map(x=>[child,H.iso(x.start),H.iso(x.end),H.text(H.split(x.days)),H.text(H.split(x.counted))]))]}];
-    download('교육공무원_호봉획정_결과.xlsx',window.makeXlsx(data),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    recalculate();const r=lastResult,d=collect(),s=d.settings;
+    const rows=d.careers.filter(active);
+    const children={};Object.entries(r.post.children||{}).forEach(([child,items])=>{children[child]=items.map(x=>({start:x.start,end:x.end,termStr:H.text(H.split(x.days)),countedStr:H.text(H.split(x.counted)),exceed:null}));});
+    const S={who:{org:'',name:'',pos:''},form:{formTitle:'',curHobong:'',writerPos:'',writerName:'',selfPos:'',selfName:'',checkerPos:'',checkerName:''},
+      edu:{type:'',school:'',age:s.schoolYears,add:s.extraYears,spe:!!s.specialSchool},
+      cert:{name:'',base:s.baseStep,date:s.certificateDate},
+      opt:{first:!!s.reason&&s.reason!=='일반',limit:!!s.limitStep,childCap:s.parentalLimit},
+      appt:s.appointDate,base:s.standardDate,
+      pre:rows.filter(x=>x.scope!=='post').map(toSiteRow),
+      post:rows.filter(x=>x.scope==='post').map(toSiteRow)};
+    const R={pre:{rows:[]},post:{rows:[],children},result:{flag13:0},contract:s.reason==='계약제교원 임용',base:H.parse(s.standardDate),
+      events:r.events.map(e=>({hobong:e.step,type:e.type,date:e.date,years:e.period.y,remStr:`${e.period.m}월 ${e.period.d}일`,next:e.next,flag13:false,beyond:false}))};
+    try{ window.HobongXlsx.export(S,R); toast('엑셀로 저장했습니다 — 호봉획정표(수식 포함) · 자료 · 계산 · 승급기록'); }
+    catch(err){ console.error(err); toast('엑셀 생성 실패: '+err.message); }
   }
   document.querySelectorAll('.setting-card input,.setting-card select').forEach(el=>{
     el.addEventListener('input',()=>{recalculate();saveLater();});
