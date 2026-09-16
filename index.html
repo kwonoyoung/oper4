@@ -525,6 +525,24 @@
       .sidebar { position: static; margin-top: 12px; }
       .table-wrap { max-height: none; overflow: visible; }
     }
+    [hidden] { display:none !important; }
+    .details-card { margin-top:20px;padding:20px; }
+    .details-card h3 { margin:0 0 12px; }
+    .details-card summary { cursor:pointer;font-weight:700;padding:14px 0; }
+    .detail-table { width:100%;border-collapse:collapse;font-size:14px; }
+    .detail-table th,.detail-table td { border:1px solid var(--line);padding:9px;text-align:left;white-space:nowrap; }
+    .detail-table th { background:#edf3f8; }
+    .career-scope { min-width:96px; }
+    .career-kind { min-width:155px; }
+    .special-fields { display:grid;gap:5px;min-width:170px;padding:6px; }
+    .special-fields label { font-size:12px; }
+    .special-fields input,.special-fields select { width:100%;font:inherit;background:var(--input-bg,#fff8d6);padding:6px;border:1px solid #ced7df; }
+    .special-cell .btn { margin:2px; }
+    #issues { margin:0;padding-left:22px;line-height:1.8;color:#9a5100; }
+    .export-note,#migrationNotice { font-size:13px;color:#64748b;line-height:1.7; }
+    .sheet input:read-only { background:#f1f5f9;color:#425466; }
+    .summary-item strong { text-align:right; }
+    @media print { .sheet-footer,.special-cell,.export-note {display:none!important;} .details-card {break-before:auto;} }
   </style>
 </head>
 <body>
@@ -534,14 +552,14 @@
         <div class="brand-badge">호봉</div>
         <div>
           <h1>교육공무원 호봉획정 프로그램</h1>
-          <p>단일 HTML · 브라우저 로컬 저장 · 교육행정 업무지원용 UI 초안</p>
+          <p>경력 환산 · 호봉 재획정 · 승급기록 · 브라우저 저장</p>
         </div>
       </div>
       <div class="top-actions">
         <button class="btn btn-dark" id="btnExample">예시 입력</button>
         <button class="btn btn-dark" id="btnSave">현재 자료 저장</button>
         <button class="btn btn-dark" id="btnPrint">인쇄 · PDF</button>
-        <button class="btn btn-green" id="btnExcel">엑셀(xlsx) 저장</button>
+        <button class="btn btn-green" id="btnExcel">엑셀(xlsx) 결과 저장</button>
         <button class="btn btn-danger" id="btnReset">전체 초기화</button>
       </div>
     </div>
@@ -568,18 +586,19 @@
             <label for="schoolYears">학령(년)</label>
             <input id="schoolYears" class="control" data-user-input="true" type="number" min="0" value="16">
           </div>
-          <div class="field">
-            <label for="schoolMonths">학령(월)</label>
+          <div class="field legacy-month" hidden>
+            <label for="schoolMonths">기존 학령 월 (0으로 확인)</label>
             <input id="schoolMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0">
           </div>
           <div class="field">
             <label for="extraYears">가산연수(년)</label>
             <input id="extraYears" class="control" data-user-input="true" type="number" min="0" value="0">
           </div>
-          <div class="field">
-            <label for="extraMonths">가산연수(월)</label>
+          <div class="field legacy-month" hidden>
+            <label for="extraMonths">기존 가산 월 (0으로 확인)</label>
             <input id="extraMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0">
           </div>
+          <div class="field full"><label><input type="checkbox" id="specialSchool"> 특수학교(학급) 가산 1년</label></div>
         </div>
       </article>
 
@@ -591,8 +610,8 @@
             <select id="baseStep" class="control" data-user-input="true">
               <option value="">선택</option>
               <option value="1">1호봉</option>
-              <option value="8">8호봉</option>
-              <option value="9" selected>9호봉</option>
+              <option value="5">5호봉 (준교사·실기교사)</option><option value="8">8호봉 (2급)</option>
+              <option value="9" selected>9호봉 (1급)</option>
               <option value="10">10호봉</option>
               <option value="11">11호봉</option>
               <option value="12">12호봉</option>
@@ -640,6 +659,7 @@
             </select>
           </div>
           <div class="field full">
+            <label><input type="checkbox" id="limitStep"> 계약제교원 14호봉·근무 5년 상한</label>
             <label for="parentalLimit">육아휴직 산입 상한</label>
             <select id="parentalLimit" class="control" data-user-input="true">
               <option value="12">1년</option>
@@ -655,7 +675,7 @@
         <div class="sheet-header">
           <div>
             <h3>호봉획정표</h3>
-            <p>임용 후 연속 경력은 다음 행 시작일 입력 시 이전 행 종료일을 자동으로 연결할 수 있습니다.</p>
+            <p>임용 전은 산입 마지막 날까지 입력합니다. 임용 후는 시작일만 입력하며 마지막 행은 획정기준일 전날까지 계산합니다.</p>
           </div>
           <div class="status-pill"><span class="status-dot"></span><span id="saveStatus">브라우저 자동저장 켜짐</span></div>
         </div>
@@ -669,14 +689,14 @@
           <table class="sheet" id="careerTable">
             <thead>
               <tr>
-                <th>No.</th>
+                <th>No. / 구분</th>
                 <th style="min-width:140px">경력 시작일</th>
-                <th style="min-width:140px">경력 종료일</th>
+                <th style="min-width:140px">산입 마지막 날</th>
                 <th style="min-width:135px">기간(년/월/일)</th>
                 <th style="min-width:200px">경력 내용</th>
                 <th style="min-width:100px">환산율(%)</th>
                 <th style="min-width:150px">환산기간(년/월/일)</th>
-                <th style="min-width:125px">특수 경력</th>
+                <th style="min-width:125px">휴직·학위·시간강사</th>
                 <th style="min-width:80px">삭제</th>
               </tr>
             </thead>
@@ -685,7 +705,8 @@
         </div>
 
         <div class="sheet-footer">
-          <button class="btn btn-primary" id="btnAddRow">+ 경력 행 추가</button>
+          <button class="btn btn-primary" id="btnAddRow">+ 임용 전 경력</button>
+          <button class="btn btn-primary" id="btnAddPost">+ 임용 후 경력</button>
           <button class="btn btn-warn" id="btnAddLeave">+ 휴직 행 추가</button>
           <button class="btn btn-warn" id="btnAddDegree">+ 학위 행 추가</button>
           <button class="btn btn-outline" id="btnExportJson">JSON 백업</button>
@@ -700,7 +721,7 @@
           <div class="result-primary">
             <div class="metric">
               <label>사정호봉</label>
-              <strong id="resultStep">규정 엔진 미연결</strong>
+              <strong id="resultStep">입력 대기</strong>
             </div>
             <div class="metric">
               <label>차기승급일</label>
@@ -716,7 +737,12 @@
             <div class="summary-item"><span>경력 입력 행</span><strong id="careerCount">0건</strong></div>
             <div class="summary-item"><span>기산호봉</span><strong id="baseStepView">9호봉</strong></div>
             <div class="summary-item"><span>획정사유</span><strong id="reasonView">일반</strong></div>
-            <div class="summary-item"><span>자동저장</span><strong>localStorage</strong></div>
+            <div class="summary-item"><span>임용 전 합계</span><strong id="preTotal">—</strong></div>
+            <div class="summary-item"><span>임용 후 합계</span><strong id="postTotal">—</strong></div>
+            <div class="summary-item"><span>연속 경력 보정일</span><strong id="correction">—</strong></div>
+            <div class="summary-item"><span>학력 가감</span><strong id="eduAdjustment">—</strong></div>
+            <div class="summary-item"><span>근무년수 / 잔여월일</span><strong id="remaining">—</strong></div>
+            <div class="summary-item"><span>차기승급 후 잔여일</span><strong id="carryDays">—</strong></div>
           </div>
         </section>
 
@@ -726,450 +752,30 @@
         </section>
 
         <section class="notice">
-          이 버전은 <strong>기본 UI/입력·저장 구조 초안</strong>입니다. 실제 교육공무원 호봉 산정, 육아휴직 산입, 1정 자격 재획정, 승급기록 등은 관련 법령·예규를 검증한 계산 엔진으로 다음 단계에서 연결해야 합니다.
+          <strong>계산 기준</strong><br>
+          <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">1번 호봉획정 프로그램(v1.3)</a>의 계산 결과를 기준으로 검증했습니다. 임용 전 경력은 행별 환산, 임용 후 연속 100% 산입은 통합 계산합니다. 입력 종료일은 산입 마지막 날입니다. 징계·승급제한 등 별도 사유는 담당자가 확인하세요.
         </section>
       </aside>
     </section>
 
+    <section class="card details-card" aria-label="계산 검토">
+      <h3>입력 확인</h3><ul id="issues" role="status"></ul>
+      <p id="migrationNotice" hidden></p>
+      <details open><summary>승급기록</summary><div class="table-wrap">
+        <table class="detail-table"><thead><tr><th>발령일</th><th>구분</th><th>호봉</th><th>근무년수</th><th>잔여월일</th><th>차기승급일</th></tr></thead><tbody id="eventBody"></tbody></table>
+      </div></details>
+      <details><summary>육아휴직 자녀별 산입 내역</summary><div class="table-wrap"><table class="detail-table"><thead><tr><th>자녀</th><th>시작일</th><th>마지막 날</th><th>전체 기간</th><th>산입 기간</th></tr></thead><tbody id="childBody"></tbody></table></div></details>
+      <p class="export-note">엑셀 저장은 현재 계산 결과를 4개 시트로 내보냅니다. 수식 재계산용 파일은 아니며, 입력 변경은 이 화면에서 처리한 뒤 다시 저장하세요.</p>
+    </section>
     <div class="footer">
-      교육공무원 호봉획정 프로그램 · 단일 HTML 초안 · 입력 자료는 현재 브라우저의 localStorage에 저장됩니다.
+      교육공무원 호봉획정 프로그램 · 경력·승급 계산 · 입력 자료는 현재 브라우저의 localStorage에 저장됩니다.
     </div>
   </main>
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    (() => {
-      "use strict";
-
-      const STORAGE_KEY = "edu_public_officer_hobong_draft_v1";
-      const tbody = document.getElementById("careerBody");
-      const toast = document.getElementById("toast");
-      let saveTimer = null;
-
-      const $ = (id) => document.getElementById(id);
-      const pad = (n) => String(n).padStart(2, "0");
-
-      function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add("show");
-        clearTimeout(showToast._timer);
-        showToast._timer = setTimeout(() => toast.classList.remove("show"), 1800);
-      }
-
-      function toInputDate(date) {
-        if (!(date instanceof Date) || isNaN(date)) return "";
-        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
-      }
-
-      function parseDate(value) {
-        if (!value) return null;
-        const [y,m,d] = value.split("-").map(Number);
-        const date = new Date(y, m-1, d);
-        return isNaN(date) ? null : date;
-      }
-
-      function addDate(date, {years=0, months=0, days=0}={}) {
-        const d = new Date(date);
-        d.setFullYear(d.getFullYear() + years);
-        d.setMonth(d.getMonth() + months);
-        d.setDate(d.getDate() + days);
-        return d;
-      }
-
-      function calendarDiffInclusive(start, end) {
-        if (!start || !end || end < start) return {y:0,m:0,d:0,totalDays:0};
-
-        const exclusiveEnd = new Date(end);
-        exclusiveEnd.setDate(exclusiveEnd.getDate() + 1);
-
-        let cursor = new Date(start);
-        let years = exclusiveEnd.getFullYear() - cursor.getFullYear();
-        let test = new Date(cursor);
-        test.setFullYear(test.getFullYear() + years);
-        if (test > exclusiveEnd) years--;
-        cursor.setFullYear(cursor.getFullYear() + years);
-
-        let months = (exclusiveEnd.getFullYear() - cursor.getFullYear()) * 12
-          + (exclusiveEnd.getMonth() - cursor.getMonth());
-        test = new Date(cursor);
-        test.setMonth(test.getMonth() + months);
-        if (test > exclusiveEnd) months--;
-        cursor.setMonth(cursor.getMonth() + months);
-
-        const days = Math.max(0, Math.round((exclusiveEnd - cursor) / 86400000));
-        const totalDays = Math.max(0, Math.round((exclusiveEnd - start) / 86400000));
-        return {y:years,m:months,d:days,totalDays};
-      }
-
-      function dayCountToYmd30(totalDays) {
-        const safe = Math.max(0, Math.floor(totalDays));
-        const years = Math.floor(safe / 360);
-        const remain = safe % 360;
-        const months = Math.floor(remain / 30);
-        const days = remain % 30;
-        return {y: years, m: months, d: days};
-      }
-
-      function ymdText(obj) {
-        return `${obj.y}년 ${obj.m}월 ${obj.d}일`;
-      }
-
-      function createCareerRow(data = {}) {
-        const tr = document.createElement("tr");
-        tr.dataset.type = data.type || "일반";
-        tr.innerHTML = `
-          <td class="rownum"></td>
-          <td><input type="date" class="user career-start" value="${data.start || ""}" aria-label="경력 시작일"></td>
-          <td><input type="date" class="user career-end" value="${data.end || ""}" data-manual-end="${data.manualEnd ? "true":"false"}" aria-label="경력 종료일"></td>
-          <td><input type="text" class="auto career-period" value="${data.period || ""}" readonly aria-label="경력 기간"></td>
-          <td><input type="text" class="user career-desc" value="${escapeHtml(data.desc || "")}" placeholder="예: 기간제교원, 군경력 등" aria-label="경력 내용"></td>
-          <td>
-            <select class="user career-rate" aria-label="환산율">
-              ${[100,80,70,50,30,0].map(rate => `<option value="${rate}" ${String(data.rate ?? 100)===String(rate)?"selected":""}>${rate}%</option>`).join("")}
-            </select>
-          </td>
-          <td><input type="text" class="auto converted-period" value="${data.converted || ""}" readonly aria-label="환산 기간"></td>
-          <td class="special-cell">
-            <button class="btn btn-warn btn-sm mark-leave">휴직</button>
-            <button class="btn btn-warn btn-sm mark-degree">학위</button>
-          </td>
-          <td class="special-cell"><button class="btn btn-danger btn-sm delete-row">삭제</button></td>
-        `;
-        tbody.appendChild(tr);
-        if (tr.dataset.type !== "일반") tr.querySelectorAll("td").forEach(td => td.classList.add("row-special"));
-        refreshRowNumbers();
-        bindRowEvents(tr);
-        return tr;
-      }
-
-      function escapeHtml(text) {
-        return String(text)
-          .replaceAll("&","&amp;")
-          .replaceAll("<","&lt;")
-          .replaceAll(">","&gt;")
-          .replaceAll('"',"&quot;");
-      }
-
-      function refreshRowNumbers() {
-        [...tbody.rows].forEach((tr, i) => tr.querySelector(".rownum").textContent = i + 1);
-      }
-
-      function bindRowEvents(tr) {
-        tr.querySelectorAll("input, select").forEach(el => {
-          el.addEventListener("focus", () => showCellInfo(el));
-          el.addEventListener("input", () => {
-            if (el.classList.contains("career-end")) el.dataset.manualEnd = "true";
-            recalculateAll();
-            scheduleSave();
-          });
-          el.addEventListener("change", () => {
-            recalculateAll();
-            scheduleSave();
-          });
-        });
-
-        tr.querySelector(".delete-row").addEventListener("click", () => {
-          tr.remove();
-          refreshRowNumbers();
-          recalculateAll();
-          scheduleSave();
-        });
-
-        tr.querySelector(".mark-leave").addEventListener("click", () => {
-          tr.dataset.type = "휴직";
-          tr.querySelector(".career-desc").value ||= "휴직";
-          tr.querySelectorAll("td").forEach(td => td.classList.add("row-special"));
-          recalculateAll();
-          scheduleSave();
-        });
-
-        tr.querySelector(".mark-degree").addEventListener("click", () => {
-          tr.dataset.type = "학위";
-          tr.querySelector(".career-desc").value ||= "학위 경력";
-          tr.querySelectorAll("td").forEach(td => td.classList.add("row-special"));
-          recalculateAll();
-          scheduleSave();
-        });
-      }
-
-      function autoConnectEndDates() {
-        const rows = [...tbody.rows];
-        for (let i=0; i<rows.length-1; i++) {
-          const current = rows[i];
-          const next = rows[i+1];
-          const start = current.querySelector(".career-start").value;
-          const endEl = current.querySelector(".career-end");
-          const nextStart = next.querySelector(".career-start").value;
-          if (!start || !nextStart) continue;
-
-          const nextDate = parseDate(nextStart);
-          if (!nextDate) continue;
-          const autoEnd = addDate(nextDate, {days:-1});
-          const currentStart = parseDate(start);
-          if (currentStart && autoEnd >= currentStart && endEl.dataset.manualEnd !== "true") {
-            endEl.value = toInputDate(autoEnd);
-            endEl.dataset.autoFilled = "true";
-          }
-        }
-      }
-
-      function recalculateAll() {
-        autoConnectEndDates();
-
-        let convertedTotalDays = 0;
-        let count = 0;
-
-        [...tbody.rows].forEach(tr => {
-          const start = parseDate(tr.querySelector(".career-start").value);
-          const end = parseDate(tr.querySelector(".career-end").value);
-          const rate = Number(tr.querySelector(".career-rate").value || 0);
-          const periodEl = tr.querySelector(".career-period");
-          const convertedEl = tr.querySelector(".converted-period");
-
-          if (start && end && end >= start) {
-            const diff = calendarDiffInclusive(start, end);
-            periodEl.value = ymdText(diff);
-            const convertedDays = Math.floor(diff.totalDays * rate / 100);
-            const converted = dayCountToYmd30(convertedDays);
-            convertedEl.value = ymdText(converted);
-            convertedTotalDays += convertedDays;
-            count++;
-          } else {
-            periodEl.value = "";
-            convertedEl.value = "";
-            if (start || end || tr.querySelector(".career-desc").value.trim()) count++;
-          }
-        });
-
-        const total = dayCountToYmd30(convertedTotalDays);
-        $("totalConverted").textContent = ymdText(total);
-        $("careerCount").textContent = `${count}건`;
-        $("baseStepView").textContent = $("baseStep").value ? `${$("baseStep").value}호봉` : "미선택";
-        $("reasonView").textContent = $("reason").value;
-
-        // 실제 사정호봉 계산은 교육공무원 관련 규정 검증 후 별도 엔진에서 처리한다.
-        $("resultStep").textContent = "규정 엔진 미연결";
-
-        const standard = parseDate($("standardDate").value);
-        $("nextPromotion").textContent = standard ? toInputDate(addDate(standard, {years:1})) : "—";
-      }
-
-      function showCellInfo(el) {
-        const tr = el.closest("tr");
-        if (!tr) return;
-        const row = [...tbody.rows].indexOf(tr) + 1;
-        const order = ["career-start","career-end","career-period","career-desc","career-rate","converted-period"];
-        const cls = order.find(c => el.classList.contains(c));
-        const col = Math.max(0, order.indexOf(cls));
-        const letters = ["A","B","C","D","E","F"];
-        $("formulaAddress").textContent = cls ? `${letters[col]}${row}` : `ROW ${row}`;
-        $("formulaValue").textContent = el.value || "(빈 값)";
-
-        const helps = {
-          "career-start": "경력 시작일을 입력합니다. 다음 행 시작일이 있으면 이전 행 종료일 자동 연결에 활용됩니다.",
-          "career-end": "경력 종료일입니다. 직접 수정하면 자동 연결값보다 수동 입력값을 우선합니다.",
-          "career-period": "시작일과 종료일을 기준으로 자동 계산되는 경력기간입니다.",
-          "career-desc": "경력 종류·기관·직종 등 검토에 필요한 내용을 적습니다.",
-          "career-rate": "해당 경력에 적용할 환산율을 선택합니다. 실제 적용률은 관련 규정을 반드시 확인해야 합니다.",
-          "converted-period": "입력 기간과 환산율을 바탕으로 표시되는 환산기간입니다."
-        };
-        $("helpText").textContent = helps[cls] || "입력 항목을 확인하세요.";
-      }
-
-      function collectData() {
-        return {
-          settings: {
-            schoolYears: $("schoolYears").value,
-            schoolMonths: $("schoolMonths").value,
-            extraYears: $("extraYears").value,
-            extraMonths: $("extraMonths").value,
-            baseStep: $("baseStep").value,
-            certificateDate: $("certificateDate").value,
-            appointDate: $("appointDate").value,
-            standardDate: $("standardDate").value,
-            reason: $("reason").value,
-            parentalLimit: $("parentalLimit").value
-          },
-          careers: [...tbody.rows].map(tr => ({
-            type: tr.dataset.type || "일반",
-            start: tr.querySelector(".career-start").value,
-            end: tr.querySelector(".career-end").value,
-            manualEnd: tr.querySelector(".career-end").dataset.manualEnd === "true",
-            desc: tr.querySelector(".career-desc").value,
-            rate: tr.querySelector(".career-rate").value
-          })),
-          savedAt: new Date().toISOString(),
-          version: 1
-        };
-      }
-
-      function applyData(data) {
-        if (!data || typeof data !== "object") return;
-        const s = data.settings || {};
-        ["schoolYears","schoolMonths","extraYears","extraMonths","baseStep","certificateDate","appointDate","standardDate","reason","parentalLimit"]
-          .forEach(id => { if (s[id] !== undefined && $(id)) $(id).value = s[id]; });
-
-        tbody.innerHTML = "";
-        (data.careers?.length ? data.careers : [{},{},{}]).forEach(row => createCareerRow(row));
-        recalculateAll();
-      }
-
-      function saveLocal(showMessage=false) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
-        $("saveStatus").textContent = `저장됨 ${new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})}`;
-        if (showMessage) showToast("현재 자료를 이 브라우저에 저장했습니다.");
-      }
-
-      function scheduleSave() {
-        clearTimeout(saveTimer);
-        $("saveStatus").textContent = "변경사항 저장 중…";
-        saveTimer = setTimeout(() => saveLocal(false), 350);
-      }
-
-      function loadLocal() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
-        try {
-          applyData(JSON.parse(raw));
-          return true;
-        } catch (e) {
-          console.warn("저장 데이터 불러오기 실패", e);
-          return false;
-        }
-      }
-
-      function download(filename, content, type="application/json") {
-        const blob = new Blob([content], {type});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      }
-
-      function exportJson() {
-        const data = JSON.stringify(collectData(), null, 2);
-        download(`교육공무원_호봉획정_백업_${new Date().toISOString().slice(0,10)}.json`, data);
-      }
-
-      function exportXlsxPrepared() {
-        if (window.XLSX) {
-          const rows = [["No.","경력 시작일","경력 종료일","기간","경력 내용","환산율(%)","환산기간"]];
-          [...tbody.rows].forEach((tr,i) => {
-            rows.push([
-              i+1,
-              tr.querySelector(".career-start").value,
-              tr.querySelector(".career-end").value,
-              tr.querySelector(".career-period").value,
-              tr.querySelector(".career-desc").value,
-              Number(tr.querySelector(".career-rate").value),
-              tr.querySelector(".converted-period").value
-            ]);
-          });
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.aoa_to_sheet(rows);
-          XLSX.utils.book_append_sheet(wb, ws, "호봉획정표");
-          XLSX.writeFile(wb, "교육공무원_호봉획정.xlsx");
-          return;
-        }
-        alert(
-          "현재 1차 초안은 서버 통신 없는 단일 HTML 구조를 우선 구현하여 SheetJS 본체를 내장하지 않았습니다.\n\n" +
-          "다음 단계에서 SheetJS를 파일 내부에 번들링하면 인터넷 없이도 .xlsx 저장 기능을 완성할 수 있습니다."
-        );
-      }
-
-      function fillExample() {
-        const today = new Date();
-        $("appointDate").value = toInputDate(addDate(today,{years:-3}));
-        $("standardDate").value = toInputDate(today);
-        $("reason").value = "일반";
-        tbody.innerHTML = "";
-        createCareerRow({start:"2018-03-01", end:"2019-02-28", desc:"기간제교원 경력", rate:100, manualEnd:true});
-        createCareerRow({start:"2019-03-01", end:"2020-02-29", desc:"관련 경력", rate:80, manualEnd:true});
-        createCareerRow({start:"2020-03-01", desc:"임용 후 경력", rate:100});
-        recalculateAll();
-        scheduleSave();
-        showToast("예시 자료를 입력했습니다.");
-      }
-
-      document.querySelectorAll(".setting-card input, .setting-card select").forEach(el => {
-        el.addEventListener("input", () => { recalculateAll(); scheduleSave(); });
-        el.addEventListener("change", () => { recalculateAll(); scheduleSave(); });
-      });
-
-      document.querySelectorAll("[data-adjust]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const current = parseDate($("standardDate").value) || new Date();
-          const token = btn.dataset.adjust;
-          const amount = token.startsWith("-") ? -1 : 1;
-          const unit = token.slice(-1);
-          const next = unit === "y" ? addDate(current,{years:amount})
-            : unit === "m" ? addDate(current,{months:amount})
-            : addDate(current,{days:amount});
-          $("standardDate").value = toInputDate(next);
-          recalculateAll();
-          scheduleSave();
-        });
-      });
-
-      $("btnSameDate").addEventListener("click", () => {
-        $("standardDate").value = $("appointDate").value;
-        recalculateAll();
-        scheduleSave();
-      });
-
-      $("btnAddRow").addEventListener("click", () => { createCareerRow(); recalculateAll(); scheduleSave(); });
-      $("btnAddLeave").addEventListener("click", () => {
-        const tr = createCareerRow({type:"휴직", desc:"휴직", rate:100});
-        tr.querySelector(".career-start").focus();
-        recalculateAll();
-        scheduleSave();
-      });
-      $("btnAddDegree").addEventListener("click", () => {
-        const tr = createCareerRow({type:"학위", desc:"학위 경력", rate:100});
-        tr.querySelector(".career-start").focus();
-        recalculateAll();
-        scheduleSave();
-      });
-
-      $("btnSave").addEventListener("click", () => saveLocal(true));
-      $("btnPrint").addEventListener("click", () => window.print());
-      $("btnExcel").addEventListener("click", exportXlsxPrepared);
-      $("btnExample").addEventListener("click", fillExample);
-      $("btnExportJson").addEventListener("click", exportJson);
-
-      $("jsonFile").addEventListener("change", async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        try {
-          const data = JSON.parse(await file.text());
-          applyData(data);
-          saveLocal(false);
-          showToast("백업 자료를 불러왔습니다.");
-        } catch {
-          alert("JSON 백업 파일을 읽을 수 없습니다.");
-        } finally {
-          e.target.value = "";
-        }
-      });
-
-      $("btnReset").addEventListener("click", () => {
-        if (!confirm("브라우저에 저장된 현재 입력자료를 모두 초기화할까요?")) return;
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-      });
-
-      if (!loadLocal()) {
-        createCareerRow();
-        createCareerRow();
-        createCareerRow();
-        recalculateAll();
-      }
-    })();
-  </script>
+  <script src="hobong-engine.js"></script>
+  <script src="xlsx-export.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
