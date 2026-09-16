@@ -571,7 +571,7 @@
     <section class="intro">
       <div>
         <h2>교육공무원 호봉획정 자동화</h2>
-        <p>노란색 셀에 입력하고, 경력기간·환산기간·결과 검토를 한 화면에서 진행합니다.</p>
+        <p>노란색 셀에 입력하고, 교육부 예규 제97호(2025. 4. 23.) 기준으로 경력기간·환산기간·결과를 검토합니다.</p>
       </div>
       <div class="legend">
         <span class="legend-chip"><span class="dot input"></span>노란색 = 사용자 입력</span>
@@ -677,7 +677,7 @@
         <div class="sheet-header">
           <div>
             <h3>호봉획정표</h3>
-            <p>임용 전은 산입 마지막 날까지 입력합니다. 임용 후는 시작일만 입력하며 마지막 행은 획정기준일 전날까지 계산합니다.</p>
+            <p>임용 전은 산입 마지막 날까지 입력합니다. 임용 후는 시작일만 입력하며 마지막 행은 획정기준일 전날까지 계산합니다. 경력 유형을 선택하면 예규 별표 1의 기본 환산율이 적용됩니다.</p>
           </div>
           <div class="status-pill"><span class="status-dot"></span><span id="saveStatus">브라우저 자동저장 켜짐</span></div>
         </div>
@@ -750,12 +750,14 @@
 
         <section class="card help-card">
           <h3>입력 도움말</h3>
-          <p id="helpText">노란색 셀은 사용자가 직접 입력하는 항목입니다. 흰색 셀은 입력값을 기준으로 자동 계산합니다.</p>
+          <p id="helpText">노란색 셀은 사용자가 직접 입력하는 항목입니다. 흰색 셀은 입력값을 기준으로 자동 계산합니다. 경력 유형의 기본 환산율은 예규 제97호 별표 1을 반영했으며, 실제 적용은 경력증명서·전력조회 및 기관별 호봉경력평가심의회 결과를 확인하세요.</p>
         </section>
 
         <section class="notice">
-          <strong>계산 기준</strong><br>
-          <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">1번 호봉획정 프로그램(v1.3)</a>의 계산 결과를 기준으로 검증했습니다. 임용 전 경력은 행별 환산, 임용 후 연속 100% 산입은 통합 계산합니다. 입력 종료일은 산입 마지막 날입니다. 징계·승급제한 등 별도 사유는 담당자가 확인하세요.
+          <strong>적용 법령·예규</strong><br>
+          교육부 예규 제97호 「교육공무원 호봉획정시 경력환산율표의 적용 등에 관한 예규」(2025. 4. 23.)의 별표 1 경력환산율표 적용 기준과 별표 2 상향 인정 기준을 반영했습니다. 환산율의 최종 인정 여부, 학력·경력 중복, 특별승급·승급제한, 퇴직일 산입 여부는 증빙자료와 기관 심의를 기준으로 담당자가 확인해야 합니다.
+          <br><br><strong>계산 방식</strong><br>
+          <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">기준 프로그램(v1.3)</a>과 대조 검증했으며, 임용 전 경력은 행별 환산, 임용 후 연속 100% 산입은 통합 계산합니다. 입력 종료일은 산입하는 마지막 날입니다.
         </section>
       </aside>
     </section>

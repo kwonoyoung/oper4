@@ -5,7 +5,20 @@
   const KEY='edu_public_officer_hobong_v2', OLD='edu_public_officer_hobong_draft_v1';
   const settings=['schoolYears','schoolMonths','extraYears','extraMonths','baseStep','certificateDate','appointDate','standardDate','reason','parentalLimit','specialSchool','limitStep'];
   const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const kinds=[['normal','일반 경력',100],['sick','질병휴직',0],['official','공무상 질병휴직',100],['military','병역휴직',100],['duty','법정의무수행휴직',100],['study','유학휴직',100],['partLeave','고용휴직(비상근)',50],['fullLeave','고용휴직(상근)',100],['adopt','입양휴직',100],['fertility','불임난임휴직',0],['child1','육아휴직(첫째)','child',1],['child2','육아휴직(둘째)','child',2],['child3','육아휴직(셋째 이상)',100,3],['training','국내연수휴직',0],['degreeLeave','국내연수휴직(학위취득)',100],['family','가사휴직',0],['accompany','동반휴직',0],['union','노조전임자휴직',100],['selfTraining','자율연수휴직',0],['degree','대학원 학위',100],['part','시간강사',100]];
+  // 교육부 예규 제97호(2025.4.23) 별표 1 기준. 환산율은 증빙·심의 결과에
+  // 따라 달라질 수 있으므로 사용자가 최종 확인·조정할 수 있게 둔다.
+  const kinds=[
+    ['normal','일반 경력(직접 입력)',100],['publicTeacher','국·공립학교 교원',100],
+    ['privateTeacher','사립학교 교원(임면 보고)',100],['privateUnreported','사립학교 교원(미보고)',50],
+    ['mismatchTeacher','자격증·학교 불일치 기간제교원',80],['lifelongTeacher','학교형태 평생교육시설 교원',100],
+    ['koreanSchool','한국학교 교원',100],['daycare','어린이집 보육교직원',100],['disabledDaycare','장애영유아 어린이집',80],
+    ['nationalCivil','국가·지방공무원',100],['employmentCivil','고용직공무원',80],
+    ['sick','질병휴직',0],['official','공무상 질병휴직',100],['military','병역휴직',100],['duty','법정의무수행휴직',100],['study','유학휴직',100],
+    ['partLeave','고용휴직(비상근)',50],['fullLeave','고용휴직(상근)',100],['adopt','입양휴직',100],['fertility','불임난임휴직',0],
+    ['child1','육아휴직(첫째)','child',1],['child2','육아휴직(둘째)','child',2],['child3','육아휴직(셋째 이상)',100,3],
+    ['training','국내연수휴직',0],['degreeLeave','국내연수휴직(학위취득)',100],['family','가사휴직',0],['accompany','동반휴직',0],
+    ['union','노조전임자휴직',100],['selfTraining','자율연수휴직',0],['degree','대학원 학위',100],['part','시간강사',100]
+  ];
   let timer,lastResult;
   function toast(message) { $('toast').textContent=message; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').classList.remove('show'),2400); }
   function inferKind(r) {
