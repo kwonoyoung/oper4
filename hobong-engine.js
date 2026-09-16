@@ -107,6 +107,7 @@
       r.end=i+1<eligible.length?eligible[i+1].start-1:base-1;
       if(i && r.start<=eligible[i-1].start) r.warnings.push('임용 후 시작일을 오름차순으로 입력하세요.');
       if(r.end<r.start) { r.warnings.push('다음 행 시작일을 확인하세요.'); return; }
+      if(r.rate!=='child'&&(r.rate===''||!Number.isFinite(Number(r.rate))||Number(r.rate)<0||Number(r.rate)>100)){r.warnings.push('환산율은 0~100 사이로 입력하세요.');return;}
       r.valid=true; r.days=units(period(r.start,r.end));
       r.leave=/휴직/.test(r.desc||'');
       r.childLimited=r.rate==='child' && [1,2].includes(Number(r.child));
@@ -167,6 +168,8 @@
     if(Number(cfg.schoolMonths)||Number(cfg.extraMonths)) issues.push('기준 사이트는 학령·가산연수를 연 단위로 계산합니다. 기존 월 입력값을 확인하세요.');
     const r={pre,post,preTotal,total,education,events:[],result:null,issues};
     for(const [label,rows] of [['임용 전',pre],['임용 후',post.rows]]) rows.forEach((row,i)=>row.warnings.forEach(w=>issues.push(`${label} ${i+1}행: ${w}`)));
+    if(pre.some(row=>row.valid&&!row.noDates&&appointment!=null&&row.end>=appointment))issues.push('임용 전 경력이 임용일 이후까지 포함되어 있습니다.');
+    if(!Number.isInteger(Number(cfg.schoolYears))||Number(cfg.schoolYears)<0||!Number.isInteger(Number(cfg.extraYears||0))||Number(cfg.extraYears||0)<0)issues.push('학령과 가산연수는 0 이상의 정수로 입력하세요.');
     const spans=pre.filter(p=>p.valid&&!p.noDates).map(p=>[p.start,p.end]);
     if(appointment!=null && base>appointment) spans.push([appointment,base-1]);
     if(spans.some((a,i)=>spans.some((b,j)=>j>i&&a[0]<=b[1]&&b[0]<=a[1]))) issues.push('겹치는 경력이 있습니다. 중복 산입 여부를 확인하세요.');

@@ -198,7 +198,7 @@
       ['자격면허',null,F.val,'호봉획정표 (2) 칸과 연결','호봉획정표!M6'],
       ['기산호봉',+cert.base||null,F.in,'1급 정교사 등 9 · 2급 8 · 준교사 5'],
       ['1정 자격 발급일',cert.date?isoToExcelSerial(cert.date):null,F.inD,'기산호봉 9 자격의 발급일. 획정일이 발급일 이후이면 9, 이전이면 8 적용'],
-      ['임용일자',null,F.valD,'호봉획정표 임용 후 첫 행의 시작일',`호봉획정표!C${firstPostRow}`],
+      ['임용일자',post.length?null:isoToExcelSerial(S.appt),F.valD,'임용일자',post.length?`호봉획정표!C${firstPostRow}`:null],
       ['획정기준일',null,F.valD,'호봉획정표 호봉획정일 칸',`호봉획정표!M${rV}`],
       ['초임호봉획정·계약제교원 임용',opt.first?1:0,F.in,'참고용 표시 (1/0) — 호봉획정사유가 초임호봉획정 또는 계약제교원 임용이면 1'],
       ['호봉상한제 적용',opt.limit?1:0,F.in,'계약제교원 14호봉 상한 적용 1 / 미적용 0'],

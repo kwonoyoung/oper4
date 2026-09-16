@@ -3,7 +3,7 @@
   'use strict';
   const H=window.Hobong, $=id=>document.getElementById(id), body=$('careerBody');
   const KEY='edu_public_officer_hobong_v2', OLD='edu_public_officer_hobong_draft_v1';
-  const settings=['schoolYears','schoolMonths','extraYears','extraMonths','baseStep','certificateDate','appointDate','standardDate','reason','parentalLimit','specialSchool','limitStep','casePreset'];
+  const settings=['org','personName','position','currentStep','schoolName','educationType','certificateName','writerPos','writerName','selfPos','selfName','checkerPos','checkerName','noPre','schoolYears','schoolMonths','extraYears','extraMonths','baseStep','certificateDate','appointDate','standardDate','reason','parentalLimit','specialSchool','limitStep','casePreset'];
   const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // 교육부 예규 제97호(2025.4.23) 별표 1 기준. 환산율은 증빙·심의 결과에
   // 따라 달라질 수 있으므로 사용자가 최종 확인·조정할 수 있게 둔다.
@@ -22,7 +22,8 @@
     ['training','국내연수휴직',0],['degreeLeave','국내연수휴직(학위취득)',100],['family','가사휴직',0],['accompany','동반휴직',0],
     ['union','노조전임자휴직',100],['selfTraining','자율연수휴직',0],['degree','대학원 학위',100],['part','시간강사',100]
   ];
-  let timer,lastResult;
+  let timer,lastResult,canExport=false;
+  const defaults=Object.fromEntries(settings.map(id=>[id,$(id).type==='checkbox'?$(id).checked:$(id).value]));
   function toast(message) { $('toast').textContent=message; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').classList.remove('show'),2400); }
   function inferKind(r) {
     if(r.kind) return r.kind;
@@ -114,7 +115,8 @@
     const legacyMonths=Number(data.settings.schoolMonths)||Number(data.settings.extraMonths);
     // 경고가 있는 상태에서 숫자 호봉을 보여주면 잘못된 입력을 확정값으로
     // 오인할 수 있다. 날짜·환산율·기준일 오류가 해소될 때까지 결과를 보류한다.
-    const current=incompatible||legacyMonths||result.issues.length?null:result.result;
+    if(data.settings.noPre&&data.careers.some(r=>r.scope==='pre'))warnings.push('임용 전 경력 없음 선택과 입력 경력이 충돌합니다.');
+    const current=incompatible||legacyMonths||warnings.length?null:result.result;canExport=!!current;
     $('resultStep').textContent=current?current.step+'호봉':'입력 확인';
     $('nextPromotion').textContent=current?(current.noNext?'없음 (계약제)':H.iso(current.next)):'—';
     $('totalConverted').textContent=H.text(H.split(result.total));
@@ -124,17 +126,18 @@
     $('remaining').textContent=current?`${current.years}년 / ${current.period.m}월 ${current.period.d}일`:'—';
     $('carryDays').textContent=current?current.carry+'일':'—';
     $('careerCount').textContent=data.careers.length+'건';$('baseStepView').textContent=data.settings.baseStep+'호봉';$('reasonView').textContent=data.settings.reason;
-    const checks=[!!data.settings.schoolYears,!!data.settings.baseStep,!!data.settings.appointDate&&!!data.settings.standardDate,!!data.careers.some(r=>r.scope==='pre'&&r.start&&r.end),!!data.careers.some(r=>r.scope==='post'&&r.start)];
-    const done=checks.filter(Boolean).length, progress=$('railProgressText'), bar=$('railProgressBar');
-    if(progress) progress.textContent=`${done}/${checks.length} 입력 현황 · ${done===checks.length?'작성 완료':'남은 항목 확인'}`;
-    if(bar) bar.style.width=`${done/checks.length*100}%`;
+    const s=data.settings, filled=v=>String(v??'').trim()!=='';
+    const checks=[filled(s.org)&&filled(s.personName),filled(s.schoolName)&&filled(s.schoolYears),filled(s.baseStep)&&filled(s.certificateName),!!H.parse(s.appointDate)&&!!H.parse(s.standardDate),s.noPre&&!data.careers.some(r=>r.scope==='pre')||result.pre.length>0&&result.pre.every(r=>r.valid&&!r.warnings.length),H.parse(s.appointDate)===H.parse(s.standardDate)&&!!s.appointDate||result.post.rows.some(r=>r.valid)&&result.post.rows.every(r=>!r.warnings.length),filled(s.writerName)&&filled(s.selfName)&&filled(s.checkerName)];
+    const done=checks.filter(Boolean).length;
+    $('railProgressText').textContent=`${done}/7`;$('railProgressBar').style.width=`${done/7*100}%`;
+    document.querySelectorAll('[data-section]').forEach((btn,i)=>{btn.parentElement.classList.toggle('done',checks[i]);btn.querySelector('em').textContent=checks[i]?'완료':'미입력';});
     $('issues').innerHTML=warnings.length?warnings.map(w=>`<li>${html(w)}</li>`).join(''):'<li>입력 오류 없음 — 경력 증빙과 적용 환산율을 대조해 주세요.</li>';
     $('eventBody').innerHTML=result.events.slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
     $('childBody').innerHTML=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`)).join('');
   }
   function apply(data) {
     if(!data||!data.settings||!Array.isArray(data.careers))throw new Error('호봉획정 JSON 형식이 아닙니다.');
-    for(const id of settings)if(data.settings[id]!=null){if($(id).type==='checkbox')$(id).checked=!!data.settings[id];else $(id).value=data.settings[id];}
+    for(const id of settings){const value=data.settings[id]??defaults[id];if($(id).type==='checkbox')$(id).checked=!!value;else $(id).value=value;}
     body.innerHTML='';
     const appointment=H.parse(data.settings.appointDate);
     const migrated=data.careers.map(r=>({...r,scope:r.scope||((appointment!=null&&H.parse(r.start)!=null&&H.parse(r.start)>=appointment)?'post':'pre')}));
@@ -144,8 +147,8 @@
     document.querySelectorAll('.legacy-month').forEach(el=>el.hidden=!Number(el.querySelector('input').value));
     recalculate();
   }
-  function save(message=false) {try{localStorage.setItem(KEY,JSON.stringify(collect()));$('saveStatus').textContent='저장됨 '+new Date().toLocaleTimeString('ko-KR');if(message)toast('이 브라우저에 저장했습니다.');}catch(e){$('saveStatus').textContent='저장 실패 · JSON으로 백업하세요.';}}
-  function saveLater(){clearTimeout(timer);$('saveStatus').textContent='저장 중…';timer=setTimeout(()=>save(),350);}
+  function save(message=false) {timer=null;try{localStorage.setItem(KEY,JSON.stringify(collect()));$('saveStatus').textContent='저장됨 '+new Date().toLocaleTimeString('ko-KR');$('railSaveStatus').textContent='✓ '+$('saveStatus').textContent;if(message)toast('이 브라우저에 저장했습니다.');}catch(e){$('saveStatus').textContent='저장 실패 · JSON으로 백업하세요.';$('railSaveStatus').textContent='저장 실패';}}
+  function saveLater(){clearTimeout(timer);$('saveStatus').textContent='저장 중…';$('railSaveStatus').textContent='저장 중…';timer=setTimeout(()=>save(),350);}
   function download(name,data,type) {const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   function example(){apply({version:2,settings:{schoolYears:16,schoolMonths:0,extraYears:1,extraMonths:0,specialSchool:false,limitStep:false,baseStep:9,certificateDate:'2010-08-27',appointDate:'2006-09-01',standardDate:'2021-03-01',parentalLimit:12,reason:'일반'},careers:[
     {scope:'pre',start:'2002-03-01',end:'2004-08-31',desc:'기간제교사 1',rate:100},{scope:'pre',start:'2005-01-01',end:'2006-02-07',desc:'기간제교사 2',rate:100},
@@ -160,24 +163,24 @@
     };
     if(cases[p]){apply({version:2,settings:{...base,...cases[p]},careers:cases[p].careers});saveLater();toast('사례집 대표 사례를 적용했습니다. 증빙자료에 맞게 수정하세요.');}
   }
-  function toSiteRow(x){ return {from:x.start,to:x.end,start:x.start,text:x.desc,pct:x.rate,note:'',cap:Number(x.cap)||0,part:x.part||null}; }
+  function toSiteRow(x){ return {from:x.start,to:x.end,start:x.start,text:x.rate==='child'?x.desc.replace(/\s*\((첫째|둘째)\)/g,'')+' ('+(Number(x.child)===2?'둘째':'첫째')+')':x.desc,pct:x.rate,note:'',cap:Number(x.cap)||0,part:x.part||null}; }
   function exportExcel(){
-    recalculate();const r=lastResult,d=collect(),s=d.settings;
+    recalculate();if(!canExport){toast('입력 확인의 오류를 먼저 수정하세요.');document.querySelector('[data-tab=issues]').click();$('detail').scrollIntoView();return;}const r=lastResult,d=collect(),s=d.settings;
     const rows=d.careers.filter(active);
     const children={};Object.entries(r.post.children||{}).forEach(([child,items])=>{children[child]=items.map(x=>({start:x.start,end:x.end,termStr:H.text(H.split(x.days)),countedStr:H.text(H.split(x.counted)),exceed:null}));});
-    const S={who:{org:'',name:'',pos:''},form:{formTitle:'',curHobong:'',writerPos:'',writerName:'',selfPos:'',selfName:'',checkerPos:'',checkerName:''},
-      edu:{type:'',school:'',age:s.schoolYears,add:s.extraYears,spe:!!s.specialSchool},
-      cert:{name:'',base:s.baseStep,date:s.certificateDate},
+    const S={who:{org:s.org,name:s.personName,pos:s.position},form:{formTitle:'',curHobong:s.currentStep,writerPos:s.writerPos,writerName:s.writerName,selfPos:s.selfPos,selfName:s.selfName,checkerPos:s.checkerPos,checkerName:s.checkerName},
+      edu:{type:s.educationType,school:s.schoolName,age:s.schoolYears,add:s.extraYears,spe:!!s.specialSchool},
+      cert:{name:s.certificateName,base:s.baseStep,date:s.certificateDate},
       opt:{first:!!s.reason&&s.reason!=='일반',limit:!!s.limitStep,childCap:s.parentalLimit},
       appt:s.appointDate,base:s.standardDate,
       pre:rows.filter(x=>x.scope!=='post').map(toSiteRow),
       post:rows.filter(x=>x.scope==='post').map(toSiteRow)};
-    const R={pre:{rows:[]},post:{rows:[],children},result:{flag13:0},contract:s.reason==='계약제교원 임용',base:H.parse(s.standardDate),
+    const R={pre:{rows:[]},post:{rows:[],children},result:{flag13:r.result?.deferred?1:0},contract:s.reason==='계약제교원 임용',base:H.parse(s.standardDate),
       events:r.events.map(e=>({hobong:e.step,type:e.type,date:e.date,years:e.period.y,remStr:`${e.period.m}월 ${e.period.d}일`,next:e.next,flag13:false,beyond:false}))};
     try{ window.HobongXlsx.export(S,R); toast('엑셀로 저장했습니다 — 호봉획정표(수식 포함) · 자료 · 계산 · 승급기록'); }
     catch(err){ console.error(err); toast('엑셀 생성 실패: '+err.message); }
   }
-  document.querySelectorAll('.setting-card input,.setting-card select').forEach(el=>{
+  document.querySelectorAll('.setting-card input,.setting-card select,#noPre').forEach(el=>{
     el.addEventListener('input',()=>{recalculate();saveLater();});
     el.addEventListener('change',()=>{
       if(el.id==='reason'){
@@ -204,13 +207,39 @@
     if(action==='print') window.print();
     if(action==='save') save(true);
     if(action==='reset') $('btnReset').click();
-    if(action==='help') document.querySelector('.help-card')?.scrollIntoView({behavior:'smooth'});
-    if(action==='work') document.querySelector('.sheet-card')?.scrollIntoView({behavior:'smooth'});
+    if(action==='help'){document.querySelectorAll('[data-rail]').forEach(b=>b.classList.toggle('on',b===btn));$('helpside').classList.remove('min');$('helpBody').innerHTML=helpText.help;$('helpside').scrollIntoView({behavior:'smooth'});}
+    if(action==='work'){document.querySelectorAll('[data-rail]').forEach(b=>b.classList.toggle('on',b===btn));body.querySelectorAll('tr').forEach(r=>r.hidden=false);document.querySelector('.sheet-card')?.scrollIntoView({behavior:'smooth'});}
   });
-  $('btnSave').onclick=()=>save(true);$('btnPrint').onclick=()=>window.print();$('btnExample').onclick=example;$('btnExcel').onclick=exportExcel;
+  $('btnSave').onclick=()=>save(true);$('btnPrint').onclick=()=>{recalculate();if(!canExport){toast('입력 확인의 오류를 먼저 수정하세요.');return;}body.querySelectorAll('tr').forEach(r=>r.hidden=false);window.print();};$('btnExample').onclick=example;$('btnExcel').onclick=exportExcel;
   $('btnExportJson').onclick=()=>download('교육공무원_호봉획정_백업.json',JSON.stringify(collect(),null,2),'application/json');
   $('jsonFile').onchange=async e=>{try{if(e.target.files[0]){apply(JSON.parse(await e.target.files[0].text()));save();toast('자료를 불러왔습니다.');}}catch(err){alert('불러오기 실패: '+err.message);}finally{e.target.value='';}};
-  $('btnReset').onclick=()=>{if(confirm('현재 브라우저의 호봉 입력자료를 초기화할까요? 먼저 JSON으로 백업할 수 있습니다.')){localStorage.removeItem(KEY);localStorage.removeItem(OLD);location.reload();}};
+  $('btnReset').onclick=()=>{if(confirm('현재 브라우저의 호봉 입력자료를 초기화할까요? 먼저 JSON으로 백업할 수 있습니다.')){clearTimeout(timer);timer=null;localStorage.removeItem(KEY);localStorage.removeItem(OLD);location.reload();}};
+  const helpText={
+    help:'<h3>사용설명서</h3><p>① 왼쪽 7개 항목을 차례로 입력합니다. ② 임용 전 경력은 산입 마지막 날까지, 임용 후 경력은 시작일을 입력합니다. ③ 입력 확인 탭의 오류를 수정한 뒤 엑셀 저장·인쇄를 사용하세요.</p><p>입력값은 자동 저장됩니다. 새 대상자는 현재 자료를 JSON으로 내려받은 뒤 새 입력을 시작합니다. 엑셀 불러오기는 이 프로그램의 표준 서식을 지원합니다.</p>',
+    who:'<h3>대상자</h3><p>소속·성명·직위를 입력하세요. 엑셀 호봉획정표에도 함께 반영됩니다.</p>',
+    edu:'<h3>학력</h3><p>졸업학교와 실제 학령을 입력하세요. 학력 가감은 학령 − 16 + 가산연수 + 특수학교 가산으로 계산합니다. 가산연수는 증빙에 따라 확인하세요.</p>',
+    cert:'<h3>자격면허 · 기산호봉</h3><p>자격면허명과 기산호봉을 입력하세요. 1급 9호봉·2급 8호봉·준교사 및 실기교사 5호봉입니다. 1정 취득일은 승급기록에도 반영됩니다.</p>',
+    date:'<h3>임용일자 · 획정기준일</h3><p>임용 후 경력은 획정기준일 전날까지 계산합니다. 초임일에 획정하는 경우 두 날짜를 같게 입력하세요.</p>',
+    pre:'<h3>임용 전 경력</h3><p>시작일·산입 마지막 날·경력 유형·환산율을 입력하세요. 경력이 없으면 경력 없음에 체크하세요. 중복 기간과 증빙을 확인하세요.</p>',
+    post:'<h3>임용 후 경력</h3><p>임용일 이후 발령 순서로 시작일을 입력합니다. 종료일은 자동입니다. 휴직과 복직은 각각 행을 추가하세요.</p>',
+    sign:'<h3>작성자 · 본인 · 확인자</h3><p>각 직위와 성명을 입력하세요. 엑셀 서식의 확인란에 반영됩니다.</p>'
+  };
+  const targets={who:'bcWho',edu:'bcEdu',cert:'bcCert',date:'bcDate',pre:'xwrap',post:'xwrap',sign:'bcSign'};
+  function navigate(key){
+    document.querySelectorAll('[data-section]').forEach(b=>{b.classList.toggle('on',b.dataset.section===key);b.setAttribute('aria-current',b.dataset.section===key?'step':'false');});
+    document.querySelectorAll('[data-rail]').forEach(b=>b.classList.remove('on'));
+    $('helpBody').innerHTML=helpText[key];$('helpside').classList.remove('min');
+    const target=$(targets[key]);target.tabIndex=-1;target.scrollIntoView({behavior:'smooth',block:'start'});target.focus({preventScroll:true});
+    if(key==='pre'||key==='post'){const row=[...body.rows].find(r=>r.querySelector('.career-scope').value===key);row?.querySelector('.career-start').focus({preventScroll:true});}
+  }
+  document.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>navigate(b.dataset.section));
+  Object.entries(targets).filter(([k])=>!['pre','post'].includes(k)).forEach(([key,id])=>$(id).addEventListener('focusin',()=>{$('helpBody').innerHTML=helpText[key];}));
+  body.addEventListener('focusin',e=>{const row=e.target.closest('tr');if(row)$('helpBody').innerHTML=helpText[row.querySelector('.career-scope').value];});
+  $('railSaveStatus').onclick=()=>save(true);
+  $('btnNew').onclick=()=>{clearTimeout(timer);download('호봉획정_이전대상자.json',JSON.stringify(collect(),null,2),'application/json');apply({version:2,settings:defaults,careers:[]});save();navigate('who');toast('이전 대상자를 JSON으로 백업하고 새 입력을 시작합니다.');};
+  $('btnImportExcel').onclick=()=>$('excelFile').click();
+  $('excelFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;const data=await window.HobongImport(file);if(!confirm('현재 입력을 선택한 엑셀 자료로 바꿀까요?'))return;download('호봉획정_불러오기전_백업.json',JSON.stringify(collect(),null,2),'application/json');apply(data);save();toast('엑셀 입력을 불러와 다시 계산했습니다. 입력 확인을 검토하세요.');}catch(err){alert('엑셀 불러오기 실패: '+err.message);}finally{e.target.value='';}};
+  window.addEventListener('pagehide',()=>{if(timer){clearTimeout(timer);save();}});
   let restored=false;
   try{const raw=localStorage.getItem(KEY)||localStorage.getItem(OLD);if(raw){apply(JSON.parse(raw));restored=true;}}catch(e){toast('저장 자료를 읽지 못했습니다. 원본은 유지됩니다.');}
   if(!restored){addRow();addRow({scope:'post',desc:'근무'});recalculate();}

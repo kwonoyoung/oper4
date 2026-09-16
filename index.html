@@ -517,30 +517,44 @@ table.sheet+*{margin-top:0}
   table.sheet input,table.sheet select{border:0!important;background:#fff!important;color:#000!important}
   .xscroll.table-wrap{max-height:none!important;overflow:visible!important;padding:0!important}
 }
+
+/* Sidebar navigation, September 2026 */
+.rail{width:350px;flex-basis:350px;top:0;margin:0;height:100vh;border:1px solid #dedbd2;border-left:2px solid #3264b6;border-radius:0;box-shadow:none}
+.railsec{font-size:13px;padding:14px 20px 7px}.railsec.cen{padding:22px 20px 8px}
+.rail-tip{font-size:17px;line-height:1.55;padding:14px 16px;margin:0 14px 14px;border-radius:14px}
+.steps{padding:2px 14px 10px}.steps button.st{font-size:18px;padding:12px}.steps .no{flex-basis:28px;height:28px;font-size:15px}
+.steps li.helprow{gap:6px}.steps li.helprow .rail-act{font-size:15px;padding:12px 10px}
+.railprog{padding:14px;margin:6px 12px;border-radius:14px}.railprog b{font-size:16px}
+.checklist{padding:0;margin:8px 0}.checklist li{padding:0;margin:2px 0}.check-nav{border:1px solid transparent;background:transparent;width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:10px 12px;font-size:16px;cursor:pointer;border-radius:9px;color:#625f58}
+.checklist .check-nav .ck{flex-basis:22px;height:22px}.check-nav em{font-size:12px!important}.check-nav.on{background:#fff;border-color:#d9d5cb;color:#285eb1;box-shadow:inset 3px 0 #3264b6}.checklist li.done .ck{color:white}.check-nav:hover{background:#fff}
+.steps .rail-act{font-size:14px;padding:11px 7px;border-radius:12px}.rail-foot{font-size:12px;padding:14px 20px}
+#bcSign{margin-bottom:14px} .bcard label{font-size:12px;color:var(--muted)}.bcard:focus{outline:2px solid #3264b6;outline-offset:3px}.checklist li.done em{color:#1e8a6e}
+#sectionHeading{font-size:17px;padding:12px 16px;background:#e6eff9;border-radius:8px;margin:0 0 14px;color:#24538f}
+@media(max-width:1200px){.rail{width:300px;flex-basis:300px}.check-nav{font-size:14px}.rail-tip{font-size:15px}.mainrow{flex-wrap:wrap}.helpside{width:100%;flex-basis:100%;position:static;max-height:none}}
+@media(max-width:900px){.rail{width:100%;flex-basis:auto;height:auto;position:static;margin:0;display:block;padding:0}.railsec,.rail-tip,.railprog,.rail-foot{display:block}.steps{display:block;width:100%}.checklist{display:grid;grid-template-columns:1fr 1fr}.check-nav{font-size:14px;padding:10px 6px}.railacts{display:grid!important}.band{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}main{padding:14px 10px}.app{display:block}}
+@media print{.rail,#sectionHeading,.helpside{display:none!important}.band,#bcSign{display:block!important}.bcard{break-inside:avoid}input,select{border:0!important}main{padding:0}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="rail">
-<div class="brand"><span class="eat">교육공무원</span><b>호봉획정<br>프로그램</b><span class="tag">경력 환산 · 승급기록 · 호봉획정 자동화<br>자료는 이 컴퓨터에만 저장됩니다</span>
-<div class="rail-credit">
-<div class="mk">기준: 교육부 예규 제97호<br>호봉획정 사례집</div>
-</div>
-</div>
 <div class="railsec cen">안내도우미</div>
-<div class="rail-tip" id="railTip">표의 <b>노란색 셀</b>만 채우면 경력 환산·승급기록·사정호봉이 자동 계산됩니다. 처음이면 <b>예시 입력</b>을 눌러 보세요.</div>
+<div class="rail-tip" id="railTip">전체 흐름은 <b>부가 입력 → 호봉획정표 입력 → 확인·엑셀 저장</b>입니다. 왼쪽 항목을 선택하면 오른쪽 입력란으로 이동합니다.</div>
 <ul class="steps" id="steps">
 <li class="helprow"><button class="st helpbtn" data-rail="help" type="button"><span class="no">?</span>사용설명서</button><button class="rail-act sample" id="btnExample" type="button" title="기준 예제 자료를 채워 화면과 계산 결과를 바로 확인합니다">예시 입력</button></li>
 <li><button class="st on" data-rail="work" type="button"><span class="no">표</span>호봉획정표 작성</button></li>
 <li class="railsec" style="padding-top:8px">입력 현황</li>
-<li><div class="railprog"><div class="bar"><i id="railProgressBar"></i></div><b id="railProgressText">0/5</b></div></li>
-<li class="railsec" style="padding-top:6px">저장 · 출력</li>
+<li><div class="railprog"><div class="bar"><i id="railProgressBar"></i></div><b id="railProgressText">0/7</b></div></li>
+<li><ul class="checklist"><li><button type="button" class="check-nav" data-section="who"><span class="ck">✓</span><span>대상자 (소속·성명)</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="edu"><span class="ck">✓</span><span>학력 (졸업학교·학령)</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="cert"><span class="ck">✓</span><span>자격면허 · 기산호봉</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="date"><span class="ck">✓</span><span>임용일자 · 획정기준일</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="pre"><span class="ck">✓</span><span>임용 전 경력</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="post"><span class="ck">✓</span><span>임용 후 경력</span><em>미입력</em></button></li><li><button type="button" class="check-nav" data-section="sign"><span class="ck">✓</span><span>작성자 · 본인 · 확인자</span><em>미입력</em></button></li></ul></li><li class="railsec" style="padding-top:6px">저장 · 출력</li>
 <li class="railacts">
+<button class="rail-act done span2" id="railSaveStatus" type="button">저장 대기</button>
+<button class="rail-act" id="btnImportExcel" type="button">엑셀 불러오기</button><input id="excelFile" type="file" accept=".xlsx" hidden>
 <button class="rail-act pri span2" id="btnExcel" type="button" title="현재 계산 결과를 엑셀(xlsx) 4개 시트로 저장">📊 엑셀(xlsx) 저장</button>
 <button class="rail-act" id="btnPrint" type="button" title="호봉획정표를 인쇄하거나 PDF로 저장">🖨 인쇄·PDF</button>
 <button class="rail-act" id="btnSave" type="button" title="현재 입력 자료를 이 브라우저에 저장">현재 자료 저장</button>
 <button class="rail-act" id="btnExportJson" type="button" title="입력 자료를 JSON 파일로 백업">JSON 백업</button>
-<button class="rail-act dang span2" id="btnReset" type="button" title="입력 자료와 저장된 내용을 모두 지웁니다">전체 초기화</button>
+<button class="rail-act" id="btnNew" type="button">새 대상자</button>
+<button class="rail-act dang" id="btnReset" type="button" title="입력 자료와 저장된 내용을 모두 지웁니다">전체 초기화</button>
 </li>
 </ul>
 <div class="rail-foot">웹 단일파일 · 설치 없음 · 입력 자료는 이 브라우저(localStorage)에만 저장됩니다.</div>
@@ -572,8 +586,9 @@ table.sheet+*{margin-top:0}
 </section>
 
 <section class="band" id="band">
+<div class="bcard setting-card" id="bcWho"><h3>대상자</h3><div class="mini c2"><div><label for="org">소속</label><input id="org" type="text" maxlength="150"></div><div><label for="personName">성명</label><input id="personName" type="text" maxlength="150"></div><div><label for="position">직위</label><input id="position" type="text" maxlength="150"></div><div><label for="currentStep">현 호봉</label><input id="currentStep" type="text" maxlength="150"></div></div></div>
 <div class="bcard setting-card" id="bcEdu">
-<h3><i>1</i>학력 산정</h3>
+<h3><i>1</i>학력 산정</h3><div class="mini c2"><div><label for="schoolName">졸업학교</label><input id="schoolName" type="text" maxlength="150"></div><div><label for="educationType">학력 유형</label><input id="educationType" type="text" maxlength="150"></div></div>
 <div class="mini c2">
 <div><label for="schoolYears">학령(년)</label><input id="schoolYears" class="control" data-user-input="true" type="number" min="0" value="16"></div>
 <div><label for="extraYears">가산연수(년)</label><input id="extraYears" class="control" data-user-input="true" type="number" min="0" value="0"></div>
@@ -585,7 +600,7 @@ table.sheet+*{margin-top:0}
 </div>
 
 <div class="bcard setting-card" id="bcCert">
-<h3><i>2</i>자격 · 면허</h3>
+<h3><i>2</i>자격 · 면허</h3><div><label for="certificateName">자격면허명</label><input id="certificateName" type="text" maxlength="150"></div>
 <div class="mini c2">
 <div><label for="baseStep">기산호봉</label><select id="baseStep" class="control" data-user-input="true">
 <option value="">선택</option>
@@ -637,6 +652,7 @@ table.sheet+*{margin-top:0}
 </div>
 </section>
 
+<section class="bcard setting-card" id="bcSign"><h3>작성자 · 본인 · 확인자</h3><div class="g3"><div><label for="writerPos">작성자 직위</label><input id="writerPos" type="text" maxlength="150"></div><div><label for="writerName">작성자 성명</label><input id="writerName" type="text" maxlength="150"></div><div><label for="selfPos">본인 직위</label><input id="selfPos" type="text" maxlength="150"></div><div><label for="selfName">본인 성명</label><input id="selfName" type="text" maxlength="150"></div><div><label for="checkerPos">확인자 직위</label><input id="checkerPos" type="text" maxlength="150"></div><div><label for="checkerName">확인자 성명</label><input id="checkerName" type="text" maxlength="150"></div></div></section>
 <section class="xwrap sheet-card" id="xwrap">
 <div class="xbar">
 <span class="xt"><i>X</i>호봉획정표 <span class="xs mut sub">교육공무원 인사기록 및 인사사무 처리 규칙 별지 서식 · 교육부 예규 제97호</span></span>
@@ -660,7 +676,7 @@ table.sheet+*{margin-top:0}
 </table>
 </div>
 <div class="xnote">
-<span><b>임용 전</b> 산입 마지막 날까지 입력</span>
+<label><input id="noPre" type="checkbox"> 임용 전 경력 없음</label><span><b>임용 전</b> 산입 마지막 날까지 입력</span>
 <span><b>임용 후</b> 시작일만 입력 → 종료일 자동</span>
 <span><b>경력 유형</b> 선택 시 예규 별표 1 환산율 적용</span>
 <span><b>특수 경력</b> 연두색 셀에서 휴직·학위·시간강사 설정</span>
@@ -691,7 +707,7 @@ table.sheet+*{margin-top:0}
 <div class="tabpane" data-pane="issues">
 <ul id="issues" role="status"></ul>
 <p id="migrationNotice" hidden></p>
-<p class="export-note">엑셀 저장은 현재 계산 결과를 4개 시트로 내보냅니다. 수식 재계산용 파일은 아니며, 입력 변경은 이 화면에서 처리한 뒤 다시 저장하세요.</p>
+<p class="export-note">엑셀은 호봉획정표·자료·계산·승급기록 4개 시트로 저장됩니다. 이 프로그램의 표준 서식은 다시 불러올 수 있습니다. 특수 경력과 승급기록은 입력 확인 후 이 화면에서 다시 계산하세요.</p>
 </div>
 </section>
 
@@ -728,6 +744,7 @@ table.sheet+*{margin-top:0}
 <div class="toast" id="toast"></div>
 <script src="hobong-engine.js"></script>
 <script src="xlsx-export.js"></script>
+<script src="xlsx-import.js"></script>
 <script src="app.js"></script>
 <script>
 (function(){
