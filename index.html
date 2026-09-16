@@ -571,7 +571,7 @@
     <section class="intro">
       <div>
         <h2>교육공무원 호봉획정 자동화</h2>
-        <p>노란색 셀에 입력하고, 교육부 예규 제97호(2025. 4. 23.) 기준으로 경력기간·환산기간·결과를 검토합니다.</p>
+        <p>노란색 셀에 입력하고, 교육부 예규 제97호와 교육공무원 호봉획정 사례집의 대표 사례 기준으로 경력기간·환산기간·결과를 검토합니다.</p>
       </div>
       <div class="legend">
         <span class="legend-chip"><span class="dot input"></span>노란색 = 사용자 입력</span>
@@ -668,6 +668,16 @@
               <option value="18">1년 6개월</option>
             </select>
           </div>
+          <div class="field full">
+            <label for="casePreset">사례집 대표 사례</label>
+            <select id="casePreset" class="control" data-user-input="true">
+              <option value="">선택 안 함</option>
+              <option value="agency">교육지원청·재단법인 경력</option>
+              <option value="academy">학원강사·회사 경력</option>
+              <option value="leave">육아휴직 분할·복직 사례</option>
+            </select>
+            <button class="btn btn-warn btn-sm" id="btnApplyCase" type="button">사례 적용</button>
+          </div>
         </div>
       </article>
     </section>
@@ -754,10 +764,10 @@
         </section>
 
         <section class="notice">
-          <strong>적용 법령·예규</strong><br>
+          <strong>적용 법령·예규·사례집</strong><br>
           교육부 예규 제97호 「교육공무원 호봉획정시 경력환산율표의 적용 등에 관한 예규」(2025. 4. 23.)의 별표 1 경력환산율표 적용 기준과 별표 2 상향 인정 기준을 반영했습니다. 환산율의 최종 인정 여부, 학력·경력 중복, 특별승급·승급제한, 퇴직일 산입 여부는 증빙자료와 기관 심의를 기준으로 담당자가 확인해야 합니다.
           <br><br><strong>계산 방식</strong><br>
-          <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">기준 프로그램(v1.3)</a>과 대조 검증했으며, 임용 전 경력은 행별 환산, 임용 후 연속 100% 산입은 통합 계산합니다. 입력 종료일은 산입하는 마지막 날입니다.
+          교육공무원 호봉획정 사례집의 교육지원청·재단법인, 학원강사·회사, 육아휴직 대표 사례를 입력 프리셋으로 제공하며, 사례집 자체는 참고용이므로 실제 경력증명서·전력조회 결과에 맞게 수정해야 합니다. <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">기준 프로그램(v1.3)</a>과 대조 검증했으며, 입력 종료일은 산입하는 마지막 날입니다.
         </section>
       </aside>
     </section>

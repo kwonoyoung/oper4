@@ -3,7 +3,7 @@
   'use strict';
   const H=window.Hobong, $=id=>document.getElementById(id), body=$('careerBody');
   const KEY='edu_public_officer_hobong_v2', OLD='edu_public_officer_hobong_draft_v1';
-  const settings=['schoolYears','schoolMonths','extraYears','extraMonths','baseStep','certificateDate','appointDate','standardDate','reason','parentalLimit','specialSchool','limitStep'];
+  const settings=['schoolYears','schoolMonths','extraYears','extraMonths','baseStep','certificateDate','appointDate','standardDate','reason','parentalLimit','specialSchool','limitStep','casePreset'];
   const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // 교육부 예규 제97호(2025.4.23) 별표 1 기준. 환산율은 증빙·심의 결과에
   // 따라 달라질 수 있으므로 사용자가 최종 확인·조정할 수 있게 둔다.
@@ -13,6 +13,9 @@
     ['mismatchTeacher','자격증·학교 불일치 기간제교원',80],['lifelongTeacher','학교형태 평생교육시설 교원',100],
     ['koreanSchool','한국학교 교원',100],['daycare','어린이집 보육교직원',100],['disabledDaycare','장애영유아 어린이집',80],
     ['nationalCivil','국가·지방공무원',100],['employmentCivil','고용직공무원',80],
+    ['publicAgency','공공기관·공공법인',50],['foundation','재단법인 근무',30],['alternative','대안교육 위탁교육기관',70],
+    ['academy','등록 학원·교습소 강사',50],['academyUnregistered','미등록 학원·교습소(객관자료)',30],['company','일반 회사 근무',40],
+    ['religious','종교법인 교육활동',60],['lawyer','변호사·법무사 업무',70],['teacherUnion','교원 노동조합 근무',70],
     ['sick','질병휴직',0],['official','공무상 질병휴직',100],['military','병역휴직',100],['duty','법정의무수행휴직',100],['study','유학휴직',100],
     ['partLeave','고용휴직(비상근)',50],['fullLeave','고용휴직(상근)',100],['adopt','입양휴직',100],['fertility','불임난임휴직',0],
     ['child1','육아휴직(첫째)','child',1],['child2','육아휴직(둘째)','child',2],['child3','육아휴직(셋째 이상)',100,3],
@@ -141,6 +144,16 @@
   function example(){apply({version:2,settings:{schoolYears:16,schoolMonths:0,extraYears:1,extraMonths:0,specialSchool:false,limitStep:false,baseStep:9,certificateDate:'2010-08-27',appointDate:'2006-09-01',standardDate:'2021-03-01',parentalLimit:12,reason:'일반'},careers:[
     {scope:'pre',start:'2002-03-01',end:'2004-08-31',desc:'기간제교사 1',rate:100},{scope:'pre',start:'2005-01-01',end:'2006-02-07',desc:'기간제교사 2',rate:100},
     ...['2006-09-01','2014-07-25','2015-11-01','2018-10-04','2019-04-25','2019-07-24'].map((start,i)=>({scope:'post',start,rate:[100,0,100,'child',100,'child'][i],child:i===3||i===5?1:0,kind:['normal','sick','normal','child1','normal','child1'][i],desc:['근무','질병휴직','근무','육아휴직(첫째)','근무','육아휴직(첫째)'][i]}))]});saveLater();toast('기준 예제: 25호봉 · 차기승급일 2021-07-01');}
+  function applyCasePreset(){
+    const p=$('casePreset').value;
+    const base={schoolYears:16,schoolMonths:0,extraYears:0,extraMonths:0,specialSchool:false,limitStep:false,baseStep:9,certificateDate:'',parentalLimit:12,reason:'초임호봉획정',casePreset:p};
+    const cases={
+      agency:{appointDate:'2022-01-01',standardDate:'2023-01-01',careers:[{scope:'pre',start:'2021-01-01',end:'2021-03-31',desc:'교육지원청 근무(주 15시간 이상)',kind:'nationalCivil',rate:50},{scope:'pre',start:'2021-04-01',end:'2021-12-31',desc:'재단법인 근무(주 15시간 이상)',kind:'foundation',rate:30}]},
+      academy:{appointDate:'2022-01-01',standardDate:'2023-01-01',careers:[{scope:'pre',start:'2021-01-01',end:'2021-06-30',desc:'등록 학원 강사',kind:'academy',rate:50},{scope:'pre',start:'2021-07-01',end:'2021-12-31',desc:'일반 회사 근무',kind:'company',rate:40}]},
+      leave:{appointDate:'2020-03-01',standardDate:'2022-03-01',reason:'일반',careers:[{scope:'post',start:'2020-03-01',desc:'근무',kind:'normal',rate:100},{scope:'post',start:'2021-03-01',desc:'육아휴직(첫째)',kind:'child1',rate:'child',child:1}]}
+    };
+    if(cases[p]){apply({version:2,settings:{...base,...cases[p]},careers:cases[p].careers});saveLater();toast('사례집 대표 사례를 적용했습니다. 증빙자료에 맞게 수정하세요.');}
+  }
   function exportExcel(){
     recalculate();const r=lastResult,s=collect(),c=r.result;
     const data=[{name:'호봉획정 결과',rows:[['항목','결과'],['사정호봉',$('resultStep').textContent],['차기승급일',$('nextPromotion').textContent],['환산 총 경력',H.text(H.split(r.total))],['임용 전 합계',H.text(H.split(r.preTotal))],['임용 후 합계',H.text(H.split(r.post.total))],['보정일',r.post.correction],['학력 가감',r.education],['잔여월일',$('remaining').textContent],['입력 확인',r.issues.join('\n')],['안내','현재 계산 결과(값)입니다. 입력 변경은 웹 화면에서 다시 계산하세요.']]},
