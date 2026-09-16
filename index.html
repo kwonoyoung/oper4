@@ -528,6 +528,36 @@
     .field { min-width:0; }
     .control { min-width:0; max-width:100%; }
     [hidden] { display:none !important; }
+    /* 기준 사이트(scan0)와 동일한 업무용 레이아웃: 좌측 진행 레일 + 본문 + 도움말 패널 */
+    body.reference-ui { background:#f7f6f1; color:#1a2b3e; }
+    body.reference-ui .topbar { display:none; }
+    body.reference-ui > .reference-rail { display:flex; }
+    .reference-rail { display:none; position:fixed; z-index:20; left:12px; top:12px; bottom:12px; width:268px; padding:18px 10px 12px; flex-direction:column; background:#f3f1ea; border:2px solid #3f73c9; border-radius:14px; box-shadow:0 8px 24px rgba(31,59,120,.14); overflow:auto; }
+    .reference-rail .rail-brand { padding:0 8px 14px; border-bottom:1px solid #e3dfd4; }
+    .reference-rail .rail-brand strong { display:block; margin-top:8px; color:#1f2b3a; font-size:17px; line-height:1.3; }
+    .reference-rail .rail-brand small { display:block; margin-top:6px; color:#7a766d; line-height:1.45; }
+    .reference-rail .rail-badge { display:inline-block; padding:3px 10px; border-radius:999px; color:#176b56; background:#e2f3ee; border:1px solid #bfe0d3; font-size:11px; font-weight:700; }
+    .reference-rail .rail-section { margin:14px 4px 5px; color:#8a867c; font-size:11px; font-weight:700; }
+    .reference-rail button { width:100%; margin:3px 0; padding:8px 10px; border:1px solid #d9d3c6; border-radius:8px; background:#fff; color:#3f3d38; text-align:left; font-weight:600; cursor:pointer; }
+    .reference-rail button:hover { background:#e9e5db; }
+    .reference-rail .rail-primary { color:#fff; background:#1e8a6e; border-color:#1e8a6e; text-align:center; }
+    .reference-rail .rail-danger { color:#b23a2e; background:transparent; }
+    .reference-rail .rail-progress { padding:8px 10px; border:1px solid #e3dfd4; border-radius:8px; background:#fff; color:#5a564e; font-size:12px; }
+    .reference-rail .rail-progress i { display:block; height:6px; margin-top:5px; border-radius:4px; background:linear-gradient(90deg,#1e8a6e,#5fd3b0); }
+    body.reference-ui .page { max-width:none; margin-left:292px; padding:24px 24px 50px 18px; }
+    body.reference-ui .intro { max-width:1500px; margin:0 auto 12px; padding:0 0 12px; border-bottom:2px solid #22324a; }
+    body.reference-ui .intro h2 { font-size:18px; }
+    body.reference-ui .settings-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    body.reference-ui .setting-card, body.reference-ui .sheet-card, body.reference-ui .result-card, body.reference-ui .help-card, body.reference-ui .notice, body.reference-ui .details-card { border-color:#ddd9cf; border-radius:8px; box-shadow:0 2px 10px rgba(20,30,40,.06); }
+    body.reference-ui .setting-card h3 { color:#1f5fa8; }
+    body.reference-ui .workspace { max-width:1500px; margin:0 auto; grid-template-columns:minmax(0,1fr) 316px; gap:16px; }
+    body.reference-ui .sidebar { position:sticky; top:16px; }
+    body.reference-ui .sheet-header { background:#fff; }
+    body.reference-ui .sheet th { background:#e8eef6; }
+    body.reference-ui .sheet input.user, body.reference-ui .sheet select.user, body.reference-ui .setting-card .control[data-user-input="true"] { background:#fff2cc; }
+    body.reference-ui .btn-primary { background:#1f5fa8; }
+    @media (max-width:1100px) { .reference-rail { position:static; width:auto; margin:12px; } body.reference-ui .page { margin-left:0; } body.reference-ui .settings-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media print { .reference-rail { display:none!important; } body.reference-ui .page { margin-left:0; } }
     .details-card { margin-top:20px;padding:20px; }
     .details-card h3 { margin:0 0 12px; }
     .details-card summary { cursor:pointer;font-weight:700;padding:14px 0; }
@@ -547,7 +577,21 @@
     @media print { .sheet-footer,.special-cell,.export-note {display:none!important;} .details-card {break-before:auto;} }
   </style>
 </head>
-<body>
+<body class="reference-ui">
+  <aside class="reference-rail" aria-label="입력 진행 및 저장 메뉴">
+    <div class="rail-brand"><span class="rail-badge">교육공무원</span><strong>호봉획정<br>프로그램</strong><small>경력 환산 · 승급기록 · 호봉획정 자동화<br>자료는 이 컴퓨터에만 저장됩니다.</small></div>
+    <div class="rail-section">안내도우미</div>
+    <button type="button" data-rail="help">? 사용설명서</button>
+    <button type="button" class="rail-primary" data-rail="example">예시 입력</button>
+    <button type="button" data-rail="work">표 호봉획정표 작성</button>
+    <div class="rail-section">입력 현황</div>
+    <div class="rail-progress"><b id="railProgressText">입력 자료를 확인하세요</b><i id="railProgressBar" style="width:0%"></i></div>
+    <div class="rail-section">저장 · 출력</div>
+    <button type="button" class="rail-primary" data-rail="excel">엑셀(xlsx) 결과 저장</button>
+    <button type="button" data-rail="print">인쇄 · PDF</button>
+    <button type="button" data-rail="save">현재 자료 저장</button>
+    <button type="button" class="rail-danger" data-rail="reset">전체 초기화</button>
+  </aside>
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">

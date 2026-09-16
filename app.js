@@ -122,6 +122,10 @@
     $('remaining').textContent=current?`${current.years}년 / ${current.period.m}월 ${current.period.d}일`:'—';
     $('carryDays').textContent=current?current.carry+'일':'—';
     $('careerCount').textContent=data.careers.length+'건';$('baseStepView').textContent=data.settings.baseStep+'호봉';$('reasonView').textContent=data.settings.reason;
+    const checks=[!!data.settings.schoolYears,!!data.settings.baseStep,!!data.settings.appointDate&&!!data.settings.standardDate,!!data.careers.some(r=>r.scope==='pre'&&r.start&&r.end),!!data.careers.some(r=>r.scope==='post'&&r.start)];
+    const done=checks.filter(Boolean).length, progress=$('railProgressText'), bar=$('railProgressBar');
+    if(progress) progress.textContent=`${done}/${checks.length} 입력 현황 · ${done===checks.length?'작성 완료':'남은 항목 확인'}`;
+    if(bar) bar.style.width=`${done/checks.length*100}%`;
     $('issues').innerHTML=warnings.length?warnings.map(w=>`<li>${html(w)}</li>`).join(''):'<li>입력 오류 없음 — 경력 증빙과 적용 환산율을 대조해 주세요.</li>';
     $('eventBody').innerHTML=result.events.slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
     $('childBody').innerHTML=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`)).join('');
@@ -182,6 +186,16 @@
   $('btnAddLeave').onclick=()=>{addRow({scope:'post',desc:'질병휴직',rate:0,kind:'sick'});recalculate();saveLater();};
   $('btnAddDegree').onclick=()=>{addRow({scope:'pre',desc:'대학원 학위',kind:'degree',cap:24});recalculate();saveLater();};
   $('btnApplyCase').onclick=applyCasePreset;
+  document.querySelectorAll('[data-rail]').forEach(btn=>btn.onclick=()=>{
+    const action=btn.dataset.rail;
+    if(action==='example') example();
+    if(action==='excel') exportExcel();
+    if(action==='print') window.print();
+    if(action==='save') save(true);
+    if(action==='reset') $('btnReset').click();
+    if(action==='help') document.querySelector('.help-card')?.scrollIntoView({behavior:'smooth'});
+    if(action==='work') document.querySelector('.sheet-card')?.scrollIntoView({behavior:'smooth'});
+  });
   $('btnSave').onclick=()=>save(true);$('btnPrint').onclick=()=>window.print();$('btnExample').onclick=example;$('btnExcel').onclick=exportExcel;
   $('btnExportJson').onclick=()=>download('교육공무원_호봉획정_백업.json',JSON.stringify(collect(),null,2),'application/json');
   $('jsonFile').onchange=async e=>{try{if(e.target.files[0]){apply(JSON.parse(await e.target.files[0].text()));save();toast('자료를 불러왔습니다.');}}catch(err){alert('불러오기 실패: '+err.message);}finally{e.target.value='';}};
