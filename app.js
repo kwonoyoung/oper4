@@ -112,7 +112,9 @@
     const incompatible=data.careers.some(r=>(r.scope==='post'&&(r.cap||r.part))||(r.scope==='pre'&&r.rate==='child'));
     if(incompatible)warnings.push('학위·시간강사는 임용 전, 자녀별 육아휴직은 임용 후로 입력하세요.');
     const legacyMonths=Number(data.settings.schoolMonths)||Number(data.settings.extraMonths);
-    const current=incompatible||legacyMonths?null:result.result;
+    // 경고가 있는 상태에서 숫자 호봉을 보여주면 잘못된 입력을 확정값으로
+    // 오인할 수 있다. 날짜·환산율·기준일 오류가 해소될 때까지 결과를 보류한다.
+    const current=incompatible||legacyMonths||result.issues.length?null:result.result;
     $('resultStep').textContent=current?current.step+'호봉':'입력 확인';
     $('nextPromotion').textContent=current?(current.noNext?'없음 (계약제)':H.iso(current.next)):'—';
     $('totalConverted').textContent=H.text(H.split(result.total));
