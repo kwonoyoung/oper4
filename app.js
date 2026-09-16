@@ -73,6 +73,7 @@
       tr.querySelector('.cap-field').hidden=kind!=='degree';tr.querySelector('.part-fields').hidden=kind!=='part';
       const method=tr.querySelector('.part-method').value;
       tr.querySelector('.hours-field').hidden=method!=='1';tr.querySelector('.total-field').hidden=!['2','3'].includes(method);tr.querySelector('.avg-field').hidden=method!=='3';
+      tr.querySelectorAll('td').forEach(td=>td.classList.toggle('row-special',kind!=='normal'));
       const isChild=kind==='child1'||kind==='child2';tr.querySelector('.career-rate').readOnly=isChild;tr.querySelector('.child-label').hidden=!isChild;
       tr.querySelector('.career-end').readOnly=scope==='post';tr.querySelector('.career-start').readOnly=scope==='post'&&post[0]===tr;
       tr.querySelector('.career-period').value='';tr.querySelector('.converted-period').value='';
