@@ -1,839 +1,751 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>교육공무원 호봉획정 프로그램</title>
-  <meta name="description" content="교육공무원 호봉획정 업무를 위한 단일 HTML 기반 입력·계산 UI 초안" />
-  <style>
-    :root {
-      --navy: #102a43;
-      --navy-2: #173f5f;
-      --blue: #2563eb;
-      --sky: #eaf2ff;
-      --yellow: #fff4bf;
-      --yellow-strong: #ffe790;
-      --white: #ffffff;
-      --bg: #f3f6fa;
-      --line: #d9e2ec;
-      --line-dark: #b8c6d5;
-      --text: #243b53;
-      --muted: #627d98;
-      --green: #0f8a5f;
-      --red: #c2413b;
-      --orange: #d97706;
-      --shadow: 0 10px 30px rgba(16, 42, 67, .08);
-      --radius: 14px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: linear-gradient(135deg, var(--navy), var(--navy-2));
-      color: #fff;
-      box-shadow: 0 4px 18px rgba(16,42,67,.18);
-    }
-
-    .topbar-inner {
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .brand {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .brand-badge {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.15);
-      font-weight: 800;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 21px;
-      letter-spacing: -.4px;
-    }
-
-    .brand p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      color: #c8d8e8;
-    }
-
-    .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .btn {
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 9px 13px;
-      font-weight: 700;
-      transition: .15s ease;
-      background: #fff;
-      color: var(--navy);
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-dark { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.18); }
-    .btn-outline { background: #fff; color: var(--navy); border-color: var(--line-dark); }
-    .btn-green { background: var(--green); color: #fff; }
-    .btn-warn { background: #fff8e8; color: #8a4b00; border-color: #ffd58a; }
-    .btn-danger { background: #fff0ef; color: #a52f2a; border-color: #f2b6b2; }
-    .btn-sm { padding: 6px 9px; font-size: 12px; border-radius: 8px; }
-
-    .page {
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .intro {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: flex-start;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .intro h2 {
-      margin: 0 0 6px;
-      font-size: 28px;
-      letter-spacing: -.8px;
-    }
-
-    .intro p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .legend-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #fff;
-      padding: 6px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-    }
-
-    .dot {
-      width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,.08);
-    }
-    .dot.input { background: var(--yellow); }
-    .dot.auto { background: #fff; }
-    .dot.special { background: #e8f5ee; }
-
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .setting-card { padding: 16px; }
-    .setting-card h3 {
-      margin: 0 0 12px;
-      font-size: 16px;
-      color: var(--navy);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .step {
-      display: inline-grid;
-      width: 26px; height: 26px;
-      place-items: center;
-      border-radius: 8px;
-      background: var(--sky);
-      color: var(--blue);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-    }
-
-    .field.full { grid-column: 1 / -1; }
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-
-    .control {
-      width: 100%;
-      min-height: 38px;
-      border: 1px solid var(--line-dark);
-      border-radius: 9px;
-      padding: 7px 9px;
-      outline: none;
-      background: #fff;
-      color: var(--text);
-    }
-
-    .control:focus {
-      border-color: #7aa7ff;
-      box-shadow: 0 0 0 3px rgba(37,99,235,.10);
-    }
-
-    .input-cell, .setting-card .control[data-user-input="true"] {
-      background: var(--yellow);
-    }
-
-    .mini-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
-      gap: 14px;
-      align-items: start;
-    }
-
-    .sheet-card {
-      overflow: hidden;
-    }
-
-    .sheet-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      background: #fbfdff;
-    }
-
-    .sheet-header h3 {
-      margin: 0;
-      color: var(--navy);
-      font-size: 17px;
-    }
-
-    .sheet-header p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .formula-bar {
-      display: grid;
-      grid-template-columns: 70px minmax(0,1fr);
-      border-bottom: 1px solid var(--line);
-      background: #fff;
-    }
-
-    .formula-address, .formula-value {
-      min-height: 36px;
-      padding: 8px 10px;
-      border-right: 1px solid var(--line);
-      font-family: Consolas, monospace;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .formula-value { border-right: 0; }
-
-    .table-wrap {
-      overflow: auto;
-      max-height: 650px;
-      background: #fff;
-    }
-
-    table.sheet {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 1180px;
-      font-size: 13px;
-    }
-
-    .sheet th {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      background: #eaf0f6;
-      color: var(--navy);
-      padding: 8px 6px;
-      border-right: 1px solid var(--line-dark);
-      border-bottom: 1px solid var(--line-dark);
-      white-space: nowrap;
-      text-align: center;
-      font-weight: 800;
-    }
-
-    .sheet td {
-      border-right: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      padding: 0;
-      background: #fff;
-      vertical-align: middle;
-    }
-
-    .sheet td.rownum {
-      background: #f4f7fa;
-      color: var(--muted);
-      text-align: center;
-      font-weight: 700;
-      width: 42px;
-    }
-
-    .sheet input, .sheet select {
-      width: 100%;
-      border: 0;
-      outline: none;
-      border-radius: 0;
-      min-height: 38px;
-      padding: 7px 8px;
-      background: transparent;
-      color: var(--text);
-    }
-
-    .sheet input.user, .sheet select.user { background: var(--yellow); }
-    .sheet input.auto {
-      background: #fff;
-      color: #334e68;
-    }
-    .sheet input.auto[readonly] { cursor: default; }
-    .sheet input:focus, .sheet select:focus {
-      box-shadow: inset 0 0 0 2px #5b8def;
-      position: relative;
-      z-index: 2;
-    }
-
-    .sheet .special-cell {
-      padding: 5px;
-      min-width: 115px;
-      white-space: nowrap;
-      text-align: center;
-      background: #f7fbf9;
-    }
-
-    .row-special {
-      background: #e8f5ee !important;
-    }
-
-    .sheet-footer {
-      padding: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--line);
-      background: #fbfdff;
-    }
-
-    .sidebar {
-      display: grid;
-      gap: 12px;
-      position: sticky;
-      top: 86px;
-    }
-
-    .result-card { padding: 16px; }
-    .result-card h3 {
-      margin: 0 0 12px;
-      color: var(--navy);
-      font-size: 16px;
-    }
-
-    .result-primary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .metric {
-      padding: 12px;
-      border-radius: 12px;
-      background: var(--sky);
-      border: 1px solid #d6e6ff;
-    }
-
-    .metric label {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 800;
-      margin-bottom: 5px;
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 19px;
-      color: var(--navy);
-      letter-spacing: -.3px;
-    }
-
-    .metric.wide { grid-column: 1 / -1; }
-
-    .summary-list {
-      display: grid;
-      gap: 7px;
-      margin-top: 10px;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px dashed var(--line);
-      font-size: 13px;
-    }
-
-    .summary-item:last-child { border-bottom: 0; }
-
-    .notice {
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff8e8;
-      border: 1px solid #f5d28a;
-      color: #7a4a00;
-      font-size: 12px;
-    }
-
-    .help-card { padding: 16px; }
-    .help-card h3 { margin: 0 0 8px; color: var(--navy); font-size: 15px; }
-    .help-card p { margin: 0; color: var(--muted); font-size: 12px; }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: #ecfdf3;
-      color: #087443;
-      border: 1px solid #bfe9d1;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .status-dot {
-      width: 7px; height: 7px; border-radius: 50%; background: #16a36a;
-    }
-
-    .footer {
-      text-align: center;
-      color: var(--muted);
-      padding: 22px 8px 32px;
-      font-size: 12px;
-    }
-
-    .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 100;
-      background: var(--navy);
-      color: #fff;
-      border-radius: 10px;
-      padding: 10px 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.2);
-      opacity: 0;
-      transform: translateY(10px);
-      pointer-events: none;
-      transition: .2s ease;
-      font-size: 13px;
-    }
-
-    .toast.show { opacity: 1; transform: translateY(0); }
-
-    @media (max-width: 1200px) {
-      .settings-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .workspace { grid-template-columns: 1fr; }
-      .sidebar { position: static; grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-
-    @media (max-width: 720px) {
-      .page { padding: 12px; }
-      .settings-grid, .sidebar { grid-template-columns: 1fr; }
-      .field-grid { grid-template-columns: 1fr; }
-      .field.full { grid-column: auto; }
-      .intro h2 { font-size: 23px; }
-      .topbar-inner { padding: 12px; }
-    }
-
-    @media print {
-      .topbar, .top-actions, .sheet-footer, .sidebar .help-card, .intro .legend { display: none !important; }
-      body { background: #fff; }
-      .page { max-width: none; padding: 0; }
-      .card { box-shadow: none; border-color: #bbb; }
-      .workspace { display: block; }
-      .sidebar { position: static; margin-top: 12px; }
-      .table-wrap { max-height: none; overflow: visible; }
-    }
-    .field { min-width:0; }
-    .control { min-width:0; max-width:100%; }
-    [hidden] { display:none !important; }
-    /* 기준 사이트(scan0)와 동일한 업무용 레이아웃: 좌측 진행 레일 + 본문 + 도움말 패널 */
-    body.reference-ui { background:#f7f6f1; color:#1a2b3e; }
-    body.reference-ui .topbar { display:none; }
-    body.reference-ui > .reference-rail { display:flex; }
-    .reference-rail { display:none; position:fixed; z-index:20; left:12px; top:12px; bottom:12px; width:268px; padding:18px 10px 12px; flex-direction:column; background:#f3f1ea; border:2px solid #3f73c9; border-radius:14px; box-shadow:0 8px 24px rgba(31,59,120,.14); overflow:auto; }
-    .reference-rail .rail-brand { padding:0 8px 14px; border-bottom:1px solid #e3dfd4; }
-    .reference-rail .rail-brand strong { display:block; margin-top:8px; color:#1f2b3a; font-size:17px; line-height:1.3; }
-    .reference-rail .rail-brand small { display:block; margin-top:6px; color:#7a766d; line-height:1.45; }
-    .reference-rail .rail-badge { display:inline-block; padding:3px 10px; border-radius:999px; color:#176b56; background:#e2f3ee; border:1px solid #bfe0d3; font-size:11px; font-weight:700; }
-    .reference-rail .rail-section { margin:14px 4px 5px; color:#8a867c; font-size:11px; font-weight:700; }
-    .reference-rail button { width:100%; margin:3px 0; padding:8px 10px; border:1px solid #d9d3c6; border-radius:8px; background:#fff; color:#3f3d38; text-align:left; font-weight:600; cursor:pointer; }
-    .reference-rail button:hover { background:#e9e5db; }
-    .reference-rail .rail-primary { color:#fff; background:#1e8a6e; border-color:#1e8a6e; text-align:center; }
-    .reference-rail .rail-danger { color:#b23a2e; background:transparent; }
-    .reference-rail .rail-progress { padding:8px 10px; border:1px solid #e3dfd4; border-radius:8px; background:#fff; color:#5a564e; font-size:12px; }
-    .reference-rail .rail-progress i { display:block; height:6px; margin-top:5px; border-radius:4px; background:linear-gradient(90deg,#1e8a6e,#5fd3b0); }
-    body.reference-ui .page { max-width:none; margin-left:292px; padding:24px 24px 50px 18px; }
-    body.reference-ui .intro { max-width:1500px; margin:0 auto 12px; padding:0 0 12px; border-bottom:2px solid #22324a; }
-    body.reference-ui .intro h2 { font-size:18px; }
-    body.reference-ui .settings-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
-    body.reference-ui .setting-card, body.reference-ui .sheet-card, body.reference-ui .result-card, body.reference-ui .help-card, body.reference-ui .notice, body.reference-ui .details-card { border-color:#ddd9cf; border-radius:8px; box-shadow:0 2px 10px rgba(20,30,40,.06); }
-    body.reference-ui .setting-card h3 { color:#1f5fa8; }
-    body.reference-ui .workspace { max-width:1500px; margin:0 auto; grid-template-columns:minmax(0,1fr) 316px; gap:16px; }
-    body.reference-ui .sidebar { position:sticky; top:16px; }
-    body.reference-ui .sheet-header { background:#fff; }
-    body.reference-ui .sheet th { background:#e8eef6; }
-    body.reference-ui .sheet input.user, body.reference-ui .sheet select.user, body.reference-ui .setting-card .control[data-user-input="true"] { background:#fff2cc; }
-    body.reference-ui .btn-primary { background:#1f5fa8; }
-    @media (max-width:1100px) { .reference-rail { position:static; width:auto; margin:12px; } body.reference-ui .page { margin-left:0; } body.reference-ui .settings-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media print { .reference-rail { display:none!important; } body.reference-ui .page { margin-left:0; } }
-    .details-card { margin-top:20px;padding:20px; }
-    .details-card h3 { margin:0 0 12px; }
-    .details-card summary { cursor:pointer;font-weight:700;padding:14px 0; }
-    .detail-table { width:100%;border-collapse:collapse;font-size:14px; }
-    .detail-table th,.detail-table td { border:1px solid var(--line);padding:9px;text-align:left;white-space:nowrap; }
-    .detail-table th { background:#edf3f8; }
-    .career-scope { min-width:96px; }
-    .career-kind { min-width:155px; }
-    .special-fields { display:grid;gap:5px;min-width:170px;padding:6px; }
-    .special-fields label { font-size:12px; }
-    .special-fields input,.special-fields select { width:100%;font:inherit;background:var(--input-bg,#fff8d6);padding:6px;border:1px solid #ced7df; }
-    .special-cell .btn { margin:2px; }
-    #issues { margin:0;padding-left:22px;line-height:1.8;color:#9a5100; }
-    .export-note,#migrationNotice { font-size:13px;color:#64748b;line-height:1.7; }
-    .sheet input:read-only { background:#f1f5f9;color:#425466; }
-    .summary-item strong { text-align:right; }
-    @media print { .sheet-footer,.special-cell,.export-note {display:none!important;} .details-card {break-before:auto;} }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="교육공무원 호봉획정 자동화 — 경력 환산 · 승급기록 · 호봉획정표 (교육부 예규 제97호 · 호봉획정 사례집 기준)">
+<title>교육공무원 호봉획정 자동화</title>
+<style>
+
+:root{--rail:#22324A;--rail-2:#1A2838;--rail-line:#2A3A50;--rail-txt:#DCE5EF;--paper:#F7F6F1;--card:#FFFFFF;--ink:#1A2B3E;--muted:#5B6B7E;--line:#DDD9CF;--c1:#1F5FA8;--c1-bg:#E6EFF9;--c2:#1E7E6C;--c2-bg:#E2F3EE;--c3:#66788C;--c3-bg:#EDF1F5;--c4:#4B5FAE;--c4-bg:#EAEDF9;--warn:#B8801E;--warn-bg:#FFF6E3;--warn-line:#EACF97;--danger:#B23A2E;--ok:#1E8A6E;--xl:#217346;--yel:#FFF2CC;--yel-2:#FFE59A;--r:8px;--u:5.2px;--ko:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',system-ui,sans-serif}
+*{box-sizing:border-box}
+body,html{margin:0;padding:0}
+body{font-family:var(--ko);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+.app{display:flex;min-height:100vh;align-items:stretch}
+/* ---------- 좌측 메뉴(rail) — 미색(따뜻한 오프화이트) 바탕, 파랑·녹색 포인트 ---------- */
+.rail{width:268px;flex:0 0 268px;background:#F3F1EA;color:#2B2A27;display:flex;flex-direction:column;position:sticky;top:12px;left:0;height:calc(100vh - 24px);margin:12px 0 12px 12px;z-index:20;overflow:auto;scrollbar-width:thin;border:2px solid #3F73C9;border-radius:14px;box-shadow:0 8px 24px rgba(31,59,120,.14),0 1px 3px rgba(31,59,120,.10)}
+.rail>*{flex-shrink:0}
+.brand{padding:18px 18px 14px;border-bottom:1px solid #E3DFD4}
+.brand b{display:block;color:#1F2B3A;font-size:17px;font-weight:700;letter-spacing:-.5px;line-height:1.3;margin-top:8px}
+.brand span.eat{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:#E2F3EE;color:#176B56;border:1px solid #BFE0D3;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.1px;margin:0}
+.brand span.eat::before{content:"";width:6px;height:6px;border-radius:50%;background:#1E8A6E}
+.brand span{display:block;font-size:11.5px;color:#7A766D;margin-top:3px}
+.brand span.tag{color:#7A766D;font-size:11px;font-weight:500;letter-spacing:-.2px;margin-top:6px;line-height:1.45}
+.rail-credit{margin-top:10px;padding-top:10px;border-top:1px solid #E3DFD4;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rail-credit .mk{font-size:11px;font-weight:600;color:#4E4B45;letter-spacing:-.2px;line-height:1.4}
+.rail-credit a.portal{display:inline-block;margin:0;padding:4px 9px;font-size:10.5px;border-radius:999px;color:#3F3D38;border:1px solid #D9D3C6;background:#fff;text-decoration:none;font-weight:600;letter-spacing:-.2px;white-space:nowrap;transition:all .2s}
+.rail-credit a.portal:hover{background:#2F62B8;border-color:#2F62B8;color:#fff}
+.railsec{padding:4px 14px 4px;font-size:10.5px;font-weight:700;color:#8A867C;letter-spacing:.4px}
+.railsec.cen{text-align:left;padding:12px 14px 4px}
+.rail-tip{border-radius:8px;font-size:12px;margin:0 10px 8px;padding:10px 12px;background:#FFFDF7;border:1px solid #E8E2D2;color:#5A564E;line-height:1.5}
+.rail-tip b{color:#2B2A27;font-weight:700}
+.steps{list-style:none;margin:0;padding:2px 10px 6px;flex:1 0 auto}
+.steps li{margin:2px 0}
+.steps button.st{width:100%;display:flex;gap:10px;align-items:center;text-align:left;background:0 0;border:1px solid transparent;color:#3F3D38;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;line-height:1.3;position:relative;transition:background .15s,color .15s}
+.steps button.st:hover{background:#E9E5DB;color:#1F2B3A}
+.steps button.st.on{background:#fff;color:#2F62B8;font-weight:700;border-color:#E3DFD4;box-shadow:0 1px 3px rgba(40,30,10,.06)}
+.steps button.st.on::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:3px;border-radius:2px;background:#2F62B8}
+.steps .no{flex:0 0 20px;height:20px;border-radius:6px;background:#E9E5DB;color:#5A564E;display:grid;place-items:center;font-size:11px;font-weight:700;border:1px solid #E3DFD4}
+.steps button.st.on .no{background:#2F62B8;color:#fff;border-color:#2F62B8}
+.steps button.st.helpbtn{color:#3F3D38;font-weight:600}.steps button.st.helpbtn .no{background:#FFF1C9;color:#8A6200;border-color:#EAD9A6}
+.steps li.helprow{display:flex;gap:4px;align-items:center}.steps li.helprow .st{flex:1;width:auto}.steps li.helprow .rail-act{width:auto;flex:0 0 auto;padding:6px 10px;font-size:12px}
+.steps li.helprow .rail-act.sample{background:#2F62B8;border-color:#2F62B8;color:#fff}.steps li.helprow .rail-act.sample:hover{background:#2653A0;border-color:#2653A0;color:#fff}.steps li.helprow .rail-act.dang{margin-top:0}
+.steps .rail-act{width:100%;display:block;text-align:center;background:#fff;border:1px solid #D9D3C6;color:#3F3D38;padding:7px 6px;border-radius:8px;font-size:11.5px;font-weight:600;line-height:1.3;letter-spacing:-.2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .15s;box-shadow:0 1px 2px rgba(40,30,10,.04)}
+.steps .rail-act:hover{background:#FBFAF7;border-color:#B9B2A2;color:#1F2B3A}
+.steps .rail-act.dang{background:0 0;border-color:#E3DFD4;color:#8A867C;box-shadow:none}
+.steps .rail-act.dang:hover{background:#FBE9E7;border-color:#E3A9A1;color:#B23A2E}
+.steps .rail-act.pri{background:linear-gradient(180deg,#25A07E,#1E8A6E);border-color:#1E8A6E;color:#fff;font-size:12.5px;padding:9px 6px;box-shadow:0 3px 10px rgba(30,138,110,.22)}
+.steps .rail-act.pri:hover{background:linear-gradient(180deg,#2BAE89,#22987A);border-color:#22987A;color:#fff;box-shadow:0 5px 14px rgba(30,138,110,.3)}
+.steps .rail-act.done,.steps .rail-act.pri.done{background:#FFF1C9;border-color:#EACF97;color:#7A5A00;box-shadow:none}
+.steps .rail-act.pulse{animation:pulse .6s ease-out}
+.steps li.railacts{margin:6px 0 3px;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.steps li.railacts .span2{grid-column:1 / -1}
+/* 입력 현황 체크리스트 */
+.checklist{list-style:none;margin:2px 0 6px;padding:0 4px}
+.checklist li{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;cursor:pointer;color:#5A564E;font-size:12.5px;line-height:1.3;transition:background .15s}
+.checklist li:hover{background:#E9E5DB;color:#1F2B3A}
+.checklist li .ck{flex:0 0 17px;height:17px;border-radius:50%;border:1.5px solid #CFC9BC;display:grid;place-items:center;font-size:10px;font-weight:800;color:transparent;transition:.2s;background:#fff}
+.checklist li.done .ck{background:#1E8A6E;border-color:#1E8A6E;color:#fff}
+.checklist li.part .ck{border-color:#E1B341;color:#B8801E;background:#FFF6E3}
+.checklist li.done{color:#2B2A27}
+.checklist li em{margin-left:auto;font-style:normal;font-size:10.5px;color:#8A867C;white-space:nowrap}
+.checklist li.done em{color:#1E8A6E;font-weight:600}.checklist li.part em{color:#B8801E;font-weight:600}
+.railprog{margin:4px 10px 6px;background:#fff;border:1px solid #E3DFD4;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:10px}
+.railprog .bar{flex:1;height:6px;background:#EBE7DD;border-radius:4px;overflow:hidden}
+.railprog .bar i{display:block;height:100%;background:linear-gradient(90deg,#1E8A6E,#5FD3B0);width:0;transition:width .35s}
+.railprog b{font-size:12px;color:#1F2B3A;white-space:nowrap;font-weight:700}
+.rail-foot{padding:10px 16px 12px;font-size:10.5px;color:#8A867C;border-top:1px solid #E3DFD4;line-height:1.5}
+/* ---------- 본문 ---------- */
+main{flex:1;min-width:0;padding:12px 20px 60px 18px;width:100%}
+.mainrow{display:flex;gap:16px;align-items:flex-start;max-width:1500px;margin:0 auto}
+.wrap{flex:1;min-width:0}
+.helpside{width:316px;flex:0 0 316px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 2px 10px rgba(20,30,40,.06);scrollbar-width:thin;transition:width .2s,flex-basis .2s}
+.helpside.flash{animation:hsflash .7s ease-out}
+@keyframes hsflash{0%{box-shadow:0 0 0 4px #F2C14E}100%{box-shadow:0 2px 10px rgba(20,30,40,.06)}}
+.hs-head{padding:9px 12px;border-bottom:1px solid #EAD9A6;font-weight:800;font-size:13px;background:#FFF6DC;color:#6B4E00;display:flex;align-items:center;gap:8px;border-radius:var(--r) var(--r) 0 0;position:sticky;top:0;z-index:1}
+.hs-head .q{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#B8861B;color:#fff;font-size:12px;flex:0 0 20px}
+.hs-head span.sub{margin-left:auto;font-weight:500;font-size:11px;color:#8a6d1f}
+.hs-head button{border:1px solid #E3CF93;background:#fff;border-radius:5px;font-size:12px;cursor:pointer;color:#6B4E00;padding:1px 6px;line-height:1.3}
+.hs-head button:hover{background:#FFEDB8}
+/* 도움말 접기(세로 막대) */
+.helpside.min{width:42px;flex-basis:42px;overflow:hidden;cursor:pointer}
+.helpside.min .hs-body{display:none}
+.helpside.min .hs-head{flex-direction:column;padding:10px 0 12px;gap:10px;border-bottom:0;border-radius:var(--r);height:100%;min-height:220px;justify-content:flex-start}
+.helpside.min .hs-head .sub{display:none}
+.helpside.min .hs-head .lbl{writing-mode:vertical-rl;font-size:12px;letter-spacing:1px}
+.helpside.min .hs-head button{padding:2px 5px}
+.hs-body{padding:12px 14px 14px;font-size:13px;color:#22344A}
+.hs-body h3{margin:0 0 7px;font-size:15px;color:var(--c1);letter-spacing:-.3px;line-height:1.35}
+.hs-body .lead{margin:0 0 8px;line-height:1.65}
+.hs-body ul{margin:6px 0 0;padding-left:17px}
+.hs-body li{margin:4px 0;line-height:1.55}
+.hs-body .hx{background:var(--c2-bg);border:1px solid #b9dccb;border-radius:6px;padding:7px 10px;font-size:12.5px;margin:8px 0;line-height:1.55;color:#175e48}
+.hs-body .hx b:first-child{margin-right:5px;color:#0f4a38}
+.hs-body .href{margin-top:9px;padding-top:7px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--muted);line-height:1.5}
+.hs-body .ht{border-collapse:collapse;width:100%;font-size:11.5px;margin:8px 0 2px}
+.hs-body .ht th,.hs-body .ht td{border:1px solid var(--line);padding:3px 5px;vertical-align:top;line-height:1.4}
+.hs-body .ht th{background:#E8EEF6;font-weight:700;color:#2B4A6F}
+.hs-body .ht td.c{text-align:center;white-space:nowrap}
+/* 대시보드 헤더 */
+.pagehead{display:flex;flex-direction:column;gap:10px;padding:0 0 12px;margin-bottom:12px;border-bottom:2px solid var(--rail)}
+.pagehead .row1{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.pagehead .ttl{flex:1 1 240px;min-width:0;align-self:center}
+.pagehead .ttl h1{margin:0;font-size:18px;font-weight:800;letter-spacing:-.5px}
+.pagehead .ttl p{margin:3px 0 0;font-size:11.5px;color:var(--muted)}
+/* 입력 현황 대시보드 */
+.prog{display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px solid var(--line);border-radius:var(--r);background:#fff;flex:0 1 auto;min-width:0}
+.prog.ok{border-color:#9fd3bd;background:#F3FBF7}
+.prog svg{width:50px;height:50px;flex:0 0 50px}
+.prog .pinfo{min-width:0}
+.prog .pt{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.prog .pv{font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+.prog .pv.ok{color:var(--ok)}
+.prog .miss{font-size:11px;color:#7a5a00;line-height:1.35;margin-top:1px;white-space:nowrap}
+.prog .chips{display:flex;flex-wrap:wrap;gap:4px;max-width:330px;margin-left:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:2px 8px 2px 4px;font-size:10.5px;font-weight:700;color:#66788C;cursor:pointer;display:inline-flex;align-items:center;gap:4px;line-height:1.3;transition:.15s}
+.chip i{display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;background:#E3E9F0;color:#8A98A8;font-style:normal;font-size:9.5px;font-weight:800}
+.chip.done{border-color:#9fd3bd;background:var(--c2-bg);color:#155e46}.chip.done i{background:var(--ok);color:#fff}
+.chip.part{border-color:#EACF97;background:#FFF6E3;color:#7a5a00}.chip.part i{background:#F2C14E;color:#5e4500}
+.chip:hover{border-color:#93A6BC;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;min-width:0}
+.kpi{min-width:0;border:1px solid var(--line);border-radius:var(--r);padding:7px 11px;background:#fff;border-left:3px solid var(--c1);overflow:hidden}
+.kpi.hero{background:linear-gradient(135deg,#1E3047,#14212F);border-color:#1A2838;color:#fff}
+.kpi.hero .k{color:#9FB0C3}.kpi.hero .v{color:#fff;font-size:24px}.kpi.hero .s{color:#C5D0DD}
+.kpi.b{border-left-color:var(--c2)}.kpi.c{border-left-color:var(--c4)}.kpi.d{border-left-color:var(--c3)}
+.kpi.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+.kpi .k{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+.kpi .v{font-size:19px;font-weight:800;letter-spacing:-.4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v small{font-size:11px;font-weight:700;color:var(--muted);margin-left:1px;margin-right:3px}
+.kpi .s{font-size:11px;color:var(--muted);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 패널·카드 */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px}
+.panel>h2{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.panel>h2 .hint{font-weight:500;color:var(--muted);margin-left:auto;font-size:12px;text-align:right}
+.panel .body{padding:14px 16px}
+.mut{color:var(--muted)}.sm{font-size:12.5px}.xs{font-size:11.5px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:700;font-size:13px;line-height:1.3;transition:.15s}
+.btn:hover:not(:disabled){background:#F3F6FA;border-color:#A9B8CA}
+.btn:active:not(:disabled),.rail-act:active,.pickbtn:active,.chip:active,.adjbtns button:active,table.xs td.tools .ib:active:not(:disabled),.bigbtn:active,.pick button:active,.leavegrid button:active{transform:translateY(1px) scale(.985)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.go{background:var(--c1);border-color:var(--c1);color:#fff}.btn.go:hover:not(:disabled){background:#184F8F}
+.btn.ok{background:var(--c2);border-color:var(--c2);color:#fff}.btn.ok:hover:not(:disabled){background:#187a5d}
+.btn.xl{background:var(--xl);border-color:var(--xl);color:#fff}.btn.xl:hover:not(:disabled){background:#1a5c38}
+.btn.sm2{padding:5px 10px;font-size:12px}
+.btn.dg{color:var(--danger);border-color:#E3A9A1}.btn.dg:hover:not(:disabled){background:#fbe9e7}
+.btn.done{background:var(--c2-bg);border-color:#9fd3bd;color:#155e46}
+.btn.pulse{animation:pulse .5s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(30,138,110,.6)}100%{box-shadow:0 0 0 10px rgba(30,138,110,0)}}
+.btnbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fld{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.fld .req{color:var(--danger)}
+input[type=date],input[type=number],input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:#fff}
+button:focus-visible,input:focus,select:focus,textarea:focus{outline:2px solid #7fb3e0;outline-offset:1px}
+.f{margin-bottom:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.note{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:6px;padding:10px 12px;font-size:12.5px;color:#7a5a00}
+.note b{color:#5e4500}.note ul{margin:4px 0 0;padding-left:18px}.note a{color:#5e4500;font-weight:700}
+.info{background:var(--c1-bg);border:1px solid #BFD3EC;border-radius:6px;padding:10px 12px;font-size:12.5px;color:#1B3F66}
+.tag{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.t1{background:var(--c1-bg);color:var(--c1)}.t2{background:var(--c2-bg);color:var(--c2)}.tw{background:var(--warn-bg);color:#7a5a00}
+kbd{background:#f1f4f7;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;font-family:inherit}
+/* ---------- 부가 입력 카드 ---------- */
+.band{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.bcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:9px 12px 10px;position:relative;transition:.2s;border-top:3px solid #C9D3DF;display:flex;flex-direction:column;gap:7px;min-width:0}
+.bcard.done{border-top-color:var(--ok)}
+.bcard.part{border-top-color:#F2C14E}
+.bcard.flash{animation:cardflash 1.1s ease-out}
+@keyframes cardflash{0%{box-shadow:0 0 0 4px rgba(30,138,110,.55)}100%{box-shadow:0 0 0 0 rgba(30,138,110,0)}}
+.bcard h3{margin:0;font-size:13px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:6px}
+.bcard h3 i{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#C9D3DF;color:#fff;font-style:normal;font-size:10.5px;font-weight:800;transition:.2s}
+.bcard.done h3 i{background:var(--ok)}.bcard.part h3 i{background:#F2C14E;color:#5e4500}
+.bcard h3 .st{margin-left:auto;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:12px;background:#EDF1F5;color:#66788C;white-space:nowrap}
+.bcard.done h3 .st{background:var(--c2-bg);color:#155e46}
+.bcard.part h3 .st{background:#FFF1C9;color:#7a5a00}
+.bcard .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.bcard .pickbtn{flex:1 1 170px;min-width:0;display:flex;align-items:center;gap:6px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 9px;cursor:pointer;font-size:12.5px;line-height:1.3;min-height:36px;transition:.15s}
+.bcard .pickbtn .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bcard .pickbtn:hover{border-color:#93A6BC;background:#F6F9FC}
+.bcard .pickbtn.sel{border-color:var(--ok);background:var(--c2-bg);color:#155e46;font-weight:700}
+.bcard .pickbtn .chev{margin-left:auto;color:var(--muted);font-size:11px}
+.bcard .pickbtn .ckm{flex:0 0 16px;height:16px;border-radius:50%;background:var(--ok);color:#fff;display:none;place-items:center;font-size:10px}
+.bcard .pickbtn.sel .ckm{display:grid}
+.bcard .mini{display:grid;gap:6px;flex:0 0 auto}
+.bcard .mini.w3{grid-template-columns:58px 58px 78px}
+.bcard .mini.w2{grid-template-columns:62px 132px}
+.bcard .mini.d2{grid-template-columns:1fr 1fr}
+.bcard .mini label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);margin-bottom:2px;white-space:nowrap}
+.bcard .mini label small{font-weight:500;color:#8A98A8}
+.bcard .mini label .req{color:var(--danger)}
+.bcard .mini input,.bcard .mini select{padding:5px 6px;font-size:12.5px;border-radius:5px;height:32px}
+.bcard .mini input[type=date]{padding:3px 4px;font-size:12px}
+.bcard .res{font-size:12px;color:#33465C;background:#F7F9FC;border:1px solid var(--line);border-radius:6px;padding:5px 9px;line-height:1.45;margin-top:auto}
+.bcard .res b{color:var(--c1);font-size:13px}
+.adjbtns{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.adjbtns .lbl{font-size:10.5px;font-weight:700;color:var(--muted);margin-right:2px}
+.adjbtns button{border:1px solid var(--line);background:#fff;border-radius:5px;padding:3px 5px;font-size:10.5px;cursor:pointer;color:#3C5068;white-space:nowrap}
+.adjbtns button:hover{background:#F3F6FA;border-color:#A9B8CA}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px}
+.opts .selrow{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:12px;padding-top:2px}
+.opts .selrow span{white-space:nowrap;font-weight:700;color:var(--muted)}
+.opts .selrow select{padding:4px 6px;font-size:12px;width:auto;flex:1}
+.opts .selrow.reason{padding:2px 0 4px;border-bottom:1px dashed var(--line);margin-bottom:2px}
+.opts .selrow.reason select{font-weight:700;color:#1a3d6b}
+.opts .selrow.reason.on select{border-color:var(--ok);background:var(--c2-bg);color:#155e46}
+.sw{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;cursor:pointer;user-select:none;position:relative}
+.sw input{position:absolute;opacity:0;width:0;height:0}
+.sw .tg{flex:0 0 34px;height:19px;border-radius:10px;background:#C9D3DF;position:relative;transition:.2s}
+.sw .tg::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked+.tg{background:var(--ok)}
+.sw input:checked+.tg::after{left:17px}
+.sw input:focus-visible+.tg{outline:2px solid #7fb3e0}
+.sw .lb{flex:1;line-height:1.3}.sw .lb small{display:block;font-size:10.5px;color:var(--muted)}
+.sw.on .lb{font-weight:700;color:#155e46}
+.sw.tiny,.bcard .mini label.sw.tiny{display:flex;height:32px;gap:5px;margin:0;font-size:11.5px;font-weight:700;color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:0 6px;background:#fff;white-space:nowrap}.sw.tiny .lb{white-space:nowrap;flex:0 0 auto}
+.sw.tiny .tg{flex-basis:28px;height:16px}.sw.tiny .tg::after{width:12px;height:12px}.sw.tiny input:checked+.tg::after{left:14px}
+.sw.tiny.on{border-color:var(--ok);background:var(--c2-bg)}
+/* ---------- 엑셀형 시트 ---------- */
+.xwrap{background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.xbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:#F7F9FC;border-bottom:1px solid var(--line)}
+.xbar .xt{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;margin-right:auto;white-space:nowrap}.xbar .xt .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xbar .xt i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:4px;background:var(--xl);color:#fff;font-style:normal;font-size:11px;font-weight:800}
+.fxbar .lg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);padding:0 10px;border-left:1px solid #E5E5E5;white-space:nowrap;height:100%}
+.fxbar .lg i{display:inline-block;width:14px;height:12px;border:1px solid #BFBFBF;background:var(--yel)}
+/* 엑셀 수식 입력줄 */
+.fxbar{display:flex;align-items:center;gap:0;border-bottom:1px solid #D0D0D0;background:#fff;font-family:'Malgun Gothic','맑은 고딕',var(--ko);font-size:12px;height:28px}
+.fxbar .namebox{flex:0 0 78px;height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid #D0D0D0;font-weight:700;color:#222;background:#FAFAFA;font-variant-numeric:tabular-nums}
+.fxbar .fxeq{flex:0 0 34px;height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid #D0D0D0;font-style:italic;font-family:Georgia,'Times New Roman',serif;color:#666;font-size:13px}
+.fxbar .fxval{flex:1;min-width:0;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#222}
+.fxbar .fxval .f{color:#1a5c38;font-weight:600}.fxbar .fxval .d{color:var(--muted);margin-left:8px;font-size:11.5px}
+.xscroll{overflow-x:auto;padding:10px 12px 14px;background:#fff}
+table.xs{border-collapse:collapse;table-layout:fixed;width:calc(var(--u)*135 + 170px);font-family:'Malgun Gothic','맑은 고딕',var(--ko);font-size:12px;color:#000;background:#fff}
+table.xs th,table.xs td{border:1px solid #BFBFBF;padding:0;height:26px;vertical-align:middle;text-align:center;white-space:nowrap;overflow:hidden;position:relative}
+table.xs th.hd,table.xs td.hd{background:#F2F2F2;color:#444;font-weight:400;font-size:10.5px;height:18px;border-color:#D0D0D0}
+table.xs th.hd.act,table.xs td.gut.act{background:#D3E6D9;color:#0f5132;font-weight:700}
+table.xs td.gut{background:#F2F2F2;color:#555;font-size:10.5px;border-color:#D0D0D0;min-width:26px}
+table.xs td.kind{background:#F7F7F7;color:#8A98A8;font-size:10px;border-color:#D0D0D0;letter-spacing:-.5px;vertical-align:middle;padding:0 1px}
+table.xs td.kind span{display:inline-block}
+table.xs td.kind.v span{writing-mode:vertical-rl;text-orientation:upright;letter-spacing:3px;font-size:11px;font-weight:700}
+table.xs td.kind.pre{color:var(--c4);background:#F1F2FA}table.xs td.kind.post{color:var(--c2);background:#EDF6F2}
+table.xs td .pv{display:none}
+table.xs tr.flash td.in{animation:cellflash 1.1s ease-out}
+@keyframes cellflash{0%{background:#BFE8D3}100%{background:var(--yel)}}
+table.xs tr[data-pre]:hover td.gut,table.xs tr[data-post]:hover td.gut{background:#E6E6E6}
+table.xs td.in.sel,table.xs td.fx.sel{outline:2px solid var(--xl);outline-offset:-2px;z-index:1}
+table.xs td.form{border-color:#000}
+table.xs td.lab{background:#F2F2F2;font-weight:700;font-size:11px;white-space:normal;line-height:1.2;padding:2px 3px}
+table.xs td.lab.nw{white-space:nowrap;padding:2px 1px;letter-spacing:-.3px}
+table.xs td.title{font-size:20px;font-weight:800;letter-spacing:6px;height:44px}
+table.xs td.in{background:var(--yel)}
+table.xs td.in.white{background:#fff}
+table.xs td.in input,table.xs td.in select{width:100%;height:100%;border:0;background:transparent;padding:2px 4px;font-family:inherit;font-size:12px;text-align:center;border-radius:0;outline:0;min-height:24px}
+table.xs td.in input[type=date]{padding:1px 2px;font-size:11px}
+table.xs td.in input[type=date]::-webkit-calendar-picker-indicator{width:12px;height:12px;margin:0 0 0 1px;padding:0;opacity:.55}
+table.xs td.in textarea{display:block;width:100%;border:0;background:transparent;padding:4px 4px 3px;font-family:inherit;font-size:12px;line-height:1.3;resize:none;overflow:hidden;min-height:24px;text-align:left;white-space:pre-wrap;word-break:break-all;outline:0;border-radius:0}
+table.xs td.in.warn textarea{color:var(--danger)}
+table.xs td.wrap{white-space:normal}
+table.xs td.in input.l{text-align:left}
+table.xs td.in.seal input{padding-right:25px}
+table.xs td.in.seal .sealmark{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:700;font-size:11px;color:#A3AEBC;letter-spacing:-.5px;pointer-events:none}
+table.xs td.in.focus,table.xs td.in:focus-within{outline:2px solid var(--xl);outline-offset:-2px;background:#FFF9E0;z-index:1}
+table.xs td.fx{background:#fff;font-variant-numeric:tabular-nums}
+table.xs td.fx.b{font-weight:800}
+table.xs td.fx.zero{color:#9AA8B8}
+table.xs td.fx.capped{color:#3b4d9a;box-shadow:inset 0 -2px 0 #b9c0e6}
+table.xs td.fx small{font-size:10px;color:#666}
+table.xs td.tools{border:0;background:transparent;padding:0 0 0 6px;text-align:left;min-width:120px}
+table.xs td.tools .ib{border:1px solid var(--line);background:#fff;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:11px;line-height:1.2;color:#3C5068;margin-right:2px}
+table.xs td.tools .ib:hover{background:#F3F6FA;border-color:#A9B8CA}
+table.xs td.tools .ib.dg{color:var(--danger)}table.xs td.tools .ib:disabled{opacity:.3;cursor:default}
+table.xs td.tools .ib.lv{background:var(--c2-bg);border-color:#9fd3bd;color:#155e46;font-weight:700}
+table.xs td.tools .ib.cp{background:var(--c4-bg);border-color:#b9c0e6;color:#3b4d9a;font-weight:700}
+table.xs td.tools .ib.cp.on{background:var(--c4);border-color:var(--c4);color:#fff}
+.leavegrid button span small{display:block;font-size:10.5px;color:var(--muted);font-weight:400;line-height:1.3}
+.leavegrid button.none{grid-column:1 / -1;justify-content:center;background:#F6F7F9}
+.leavegrid button.on{border-color:var(--c4);background:var(--c4-bg)}
+.capcustom{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px}.capcustom input{width:80px;padding:5px 6px;border:1px solid var(--line);border-radius:5px}
+table.xs tr.addrow td{border:0;background:transparent;height:30px;text-align:left;padding:2px 0 4px}
+table.xs tr.addrow td.spacer{border:1px dashed #E0E0E0}
+table.xs tr.addrow .btn{padding:4px 10px;font-size:12px}
+table.xs tr.addrow .btn.done{cursor:default}
+table.xs td .warnmark{position:absolute;right:2px;top:1px;font-size:10px;color:var(--danger);font-weight:800}
+table.xs td.in.warn{background:#FFE0DC}
+table.xs td.in.warn input{color:var(--danger)}
+table.xs td.child{background:#fff;font-size:11px;line-height:1.15;white-space:normal}
+table.xs td .info{background:0 0;border:0;padding:0;font-size:10px;color:var(--muted);display:block;text-align:left;padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xnote{padding:8px 12px 10px;font-size:11.5px;color:var(--muted);border-top:1px dashed var(--line);display:flex;gap:14px;flex-wrap:wrap}
+.xnote b{color:#33465C}
+/* ---------- 상세 탭 ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 12px;background:#F7F9FC;border-radius:var(--r) var(--r) 0 0}
+.tabs button{border:1px solid transparent;border-bottom:0;background:0 0;padding:9px 14px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:6px 6px 0 0;margin-bottom:-1px}
+.tabs button.on{background:#fff;color:var(--c1);border-color:var(--line)}
+.tabpane{display:none;padding:12px 14px}.tabpane.on{display:block}
+table.data{border-collapse:collapse;width:100%;font-size:12.5px}
+table.data th,table.data td{border-bottom:1px solid #eaeef2;padding:5px 6px;text-align:left;vertical-align:middle}
+table.data th{background:#E8EEF6;font-size:11.5px;color:#2B4A6F;font-weight:700;white-space:nowrap}
+table.data th.c,table.data td.c{text-align:center}
+table.data.ev{font-size:12px}table.data.ev td,table.data.ev th{white-space:nowrap;padding:4px 6px}
+table.data.ev tr.re td{background:#FFF6E3}table.data.ev tr.first td{background:var(--c2-bg)}table.data.ev tr.beyond td{color:#8A98A8;font-style:italic}table.data.ev tr.base td{font-weight:800}
+table.calc{border-collapse:collapse;width:100%;font-size:13px}
+table.calc td{padding:6px 8px;border-bottom:1px solid #eaeef2}
+table.calc td.k{color:#33465C;word-break:keep-all}
+table.calc td.v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+table.calc tr.hi td{background:#FFF3E0}table.calc tr.hi td.v{color:var(--danger);font-size:14px}
+table.calc tr.tot td{background:var(--c1-bg)}table.calc tr.tot td.v{color:var(--c1);font-size:14px}
+table.calc td .tg{font-size:10.5px;color:#7a5a00;background:#FFF1C9;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700}
+.chart{width:100%;overflow-x:auto}.chart svg{display:block;width:100%;height:auto;font-family:var(--ko)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+.g2c{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}
+/* ---------- 도움말 화면 ---------- */
+.panel.help>h2 .qmark{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--rail);color:#fff;font-size:11px;font-weight:800}
+.panel.help .lead{margin:0 0 12px;font-size:13.5px;line-height:1.65}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+.flow .fs{border:1px solid var(--line);border-radius:7px;padding:10px 12px;background:#fbfcfd;position:relative}
+.flow .fs b{display:block;font-size:13px;letter-spacing:-.3px}
+.flow .fs b i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;font-style:normal;font-size:11px;margin-right:6px;background:var(--c1)}
+.flow .fs.b b i{background:var(--c2)}.flow .fs.c b i{background:var(--c4)}
+.flow .fs .when{font-size:11px;color:var(--muted);margin:2px 0 6px}
+.flow .fs p{margin:0;font-size:12px;line-height:1.55;color:#33465C}.flow .fs p b{display:inline;font-size:inherit}
+.flow .fs::after{content:"▶";position:absolute;right:-11px;top:44%;color:#AAB9CB;font-size:11px}
+.flow .fs:last-child::after{content:""}
+.howto{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.hw{border:1px solid var(--line);border-radius:7px;padding:10px 12px;background:#fff}
+.hw>b{display:flex;align-items:center;gap:7px;font-size:13px;letter-spacing:-.3px;color:var(--c1)}
+.hw>b i{flex:0 0 19px;height:19px;border-radius:50%;background:var(--c1);color:#fff;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800}
+.hw>b span{margin-left:auto;font-weight:500;font-size:11px;color:var(--muted)}
+.hw p{margin:6px 0 0;font-size:12px;line-height:1.55;color:#33465C}
+.tips{font-size:12px;color:#4a3d16;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:6px;padding:8px 12px;line-height:1.65}
+.tips b:first-child{color:#7a5a12;margin-right:4px}
+.stepnav{display:flex;justify-content:space-between;gap:8px;margin-top:4px;align-items:center}
+.bigbtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.bigbtn{border:1px solid var(--line);border-radius:8px;background:#fff;padding:12px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.bigbtn:hover{border-color:var(--c1);background:var(--c1-bg)}
+.bigbtn b{font-size:13.5px}.bigbtn span{font-size:11.5px;color:var(--muted);line-height:1.45}
+.bigbtn.dg:hover{border-color:var(--danger);background:#fbe9e7}
+.bigbtn.done{border-color:var(--ok);background:var(--c2-bg)}.bigbtn.done b{color:#155e46}
+.bigbtn.pulse{animation:pulse .6s ease-out}
+.check li{margin:3px 0}
+/* ---------- 팝업/토스트 ---------- */
+.pop{position:fixed;inset:0;z-index:120;background:rgba(22,33,43,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.pop .box{width:100%;max-width:440px;background:var(--card);border-radius:var(--r);padding:22px 24px 18px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:92vh;overflow:auto}
+.pop h3{margin:0 0 12px;font-size:16px;color:var(--c1)}
+.pop .big{font-size:14px;line-height:1.75}
+.pop .sig{margin-top:18px;padding-top:13px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.pop .sig b{display:block;margin-top:4px;font-size:13px;color:var(--ink)}
+.pop .box .btnbar{justify-content:center;margin-top:16px}
+.pop .box.wide{max-width:780px;text-align:left}.pop .box.wide h3{text-align:left}.pop .box.wide .sig{display:none}
+/* 제작자의 말 — 편지 느낌 */
+.pop .box.letter-box{max-width:600px;background:#FFFDF7;border:1px solid #EAD9A6;padding:26px 30px 20px}
+.pop .box.letter-box h3{color:#7A5A00;font-size:15px;letter-spacing:.2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed #EAD9A6}
+.letter p{margin:0 0 12px;font-size:14px;line-height:1.85;color:#2B2A27;word-break:keep-all}
+.letter b.q{color:#1E7E6C}
+.letter .sign{margin-top:16px;text-align:right;font-size:12.5px;color:#7A766D;line-height:1.6}
+.letter .sign b{display:block;font-size:14.5px;color:#1F2B3A}
+.pop .box.letter-box .btnbar{justify-content:flex-end;margin-top:10px}
+.panel.help>h2 .letterbtn{margin-left:10px;background:#FFFDF7;border-color:#EAD9A6;color:#7A5A00}
+.panel.help>h2 .letterbtn:hover{background:#FFF1C9}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.pick button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 10px;text-align:left;cursor:pointer;font-size:12.5px;line-height:1.35;color:#22344A}
+.pick button b{display:block;font-size:13px;letter-spacing:-.3px}
+.pick button span{display:block;font-size:10.5px;color:var(--muted);margin-top:1px}
+.pick button:hover{border-color:#93A6BC;background:#F6F9FC}
+.pick button.on{border-color:var(--ok);background:var(--c2-bg)}.pick button.on b{color:#155e46}
+.pick.cert button i{float:right;font-style:normal;font-weight:800;color:var(--c4);font-size:12px}
+.leavegrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.leavegrid button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 9px;text-align:left;cursor:pointer;font-size:12.5px;display:flex;justify-content:space-between;gap:6px}
+.leavegrid button:hover{border-color:var(--c1);background:var(--c1-bg)}
+.leavegrid button i{font-style:normal;font-weight:800;color:var(--c2);white-space:nowrap}
+.leavegrid button i.z{color:#9AA8B8}.leavegrid button i.h{color:var(--warn)}.leavegrid button i.k{color:var(--c4)}
+.leavegrid button.work{grid-column:1 / -1;justify-content:center;background:var(--c2-bg);border-color:#b9dccb;font-weight:800}
+.ptabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap}
+.ptabs button{border:1px solid transparent;border-bottom:0;background:0 0;padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:6px 6px 0 0}
+.ptabs button.on{background:var(--c1-bg);color:var(--c1);border-color:var(--line)}
+.pcalc{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pcalc .phelp{background:#FFF9E6;border:1px solid #EAD9A6;border-radius:7px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:#4a3d16}
+.pcalc .phelp b{color:#6B4E00}
+.pcalc .pres{margin-top:8px;background:var(--c2-bg);border:1px solid #b9dccb;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.6;color:#175e48}
+.pcalc .pres b{font-size:16px;color:#0f4a38}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;background:#1A2838;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:700;box-shadow:0 8px 26px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:.2s;max-width:80vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.dropzone{position:fixed;inset:0;z-index:110;background:rgba(29,111,184,.18);border:4px dashed var(--c1);display:none;place-items:center;font-size:20px;font-weight:800;color:var(--c1)}
+.dropzone.on{display:grid}
+/* ---------- 반응형 ---------- */
+@media (min-width:1760px){ .band{grid-template-columns:repeat(4,1fr)} .opts{grid-template-columns:1fr} }
+@media (max-width:1440px){ .helpside{width:290px;flex-basis:290px} .xbar .xt .sub{display:none} .prog .chips{max-width:250px} .hs-head .sub{display:none} .hs-head button{margin-left:auto} }
+@media (max-width:1200px){ .kpis{grid-template-columns:1fr 1fr} }
+@media (max-width:980px){
+ .mainrow{display:block}
+ .helpside{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;flex:none;max-height:40vh;border-radius:12px 12px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.22);z-index:30}
+ .helpside.min{width:auto;flex:none;max-height:none;cursor:default}.helpside.min .hs-body{display:none}
+ .helpside.min .hs-head{flex-direction:row;padding:9px 12px;height:auto;min-height:0;border-radius:12px 12px 0 0}
+ .helpside.min .hs-head .lbl{writing-mode:horizontal-tb;letter-spacing:0;font-size:13px}
+ main{padding-bottom:46vh}
+ .prog .chips{display:none}
+}
+@media (max-width:900px){
+ .panel>h2 .hint{display:none}
+ .app{flex-direction:column}
+ .rail{width:auto;flex:none;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;overflow:visible;margin:8px}
+ .brand{border:0;padding:4px 8px}.brand span{display:none}
+ .rail-credit{margin:0;padding:0;border:0}
+ .steps{display:flex;padding:0;gap:4px;flex:1 1 100%;overflow-x:auto}
+ .steps li{margin:0}
+ .steps button.st{white-space:nowrap;padding:7px 9px}
+ .steps li.railacts{margin:0;padding:0;display:flex;gap:4px}
+ .steps .rail-act{width:auto;white-space:nowrap;font-size:12px}
+ .rail-foot,.rail-tip,.railsec,.checklist,.railprog{display:none}
+ main{padding:12px}
+ .band{grid-template-columns:1fr}.flow,.howto,.g2,.g3,.g2c{grid-template-columns:1fr}
+ .flow .fs::after{content:""}
+}
+/* ---------- 인쇄: 호봉획정표만 A4 한 장 (머리말·꼬리말 없음, 행 높이는 쪽을 채우도록 자동) ---------- */
+@media print{
+ @page{size:A4 portrait;margin:0}
+ html,body{background:#fff;margin:0;padding:0}
+ .rail,.helpside,.pagehead,.band,.xbar,.fxbar,.xnote,#detail,#extras,.toast,.pop,.dropzone,#help,.stepnav{display:none!important}
+ .app{display:block}
+ main{padding:0;width:auto}
+ .mainrow{display:block;max-width:none;margin:0}
+ .xwrap{border:0;border-radius:0;margin:0;padding:11mm 12mm 8mm;overflow:visible}
+ .xscroll{overflow:visible;padding:0}
+ :root{--u:1.36mm!important}
+ table.xs{font-size:9.5pt;width:184mm!important;table-layout:fixed}
+ table.xs th,table.xs td{height:var(--rh,7mm);border:0.35mm solid #000}
+ table.xs{border:0.6mm solid #000}
+ table.xs td.lab{font-size:9pt}
+ table.xs td.title{font-size:20pt;letter-spacing:8px}
+ table.xs tr.rh td{height:calc(var(--rh,7mm)*1.35)}
+ table.xs td.gut,table.xs td.kind,table.xs th.hd,table.xs td.hd,table.xs td.tools,table.xs col.gut,table.xs col.kind,table.xs col.tools{display:none!important}
+ table.xs tr.addrow{display:none!important}
+ table.xs td.in,table.xs td.in.warn,table.xs td.in.white{background:#fff!important}
+ table.xs td.in input,table.xs td.in select,table.xs td.in textarea{display:none!important}
+ table.xs td .pv{display:block;font-size:9.5pt;color:#000;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:clip;line-height:1.2}
+ table.xs td .pv.l{text-align:left}
+ table.xs td.wrap .pv{white-space:normal;word-break:break-all;line-height:1.25;padding:1px 4px}
+ table.xs td.note .pv{font-size:8pt;padding:0 2px;letter-spacing:-.2px}
+ table.xs td.in.sel,table.xs td.fx.sel,table.xs td.in:focus-within,table.xs td.in.focus{outline:0!important;box-shadow:none!important}
+ table.xs td .warnmark,table.xs td .info,table.xs td .sealmark{display:none}
+ table.xs td.fx.capped{color:#000;box-shadow:none}
+ table.xs td.child{font-size:8.5pt}
+}
+
+
+/* =====================================================================
+   2번 프로그램(경력 입력표·사례집) 전용 어댑터 — 1번 디자인 시스템에 맞춤
+   ===================================================================== */
+[hidden]{display:none!important}
+.field{min-width:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* 부가 입력 카드: 1번 .bcard 안에 2번 입력 필드 배치 */
+.bcard .mini{display:grid}
+.bcard .mini.c2{grid-template-columns:1fr 1fr}
+.bcard .mini.c1{grid-template-columns:1fr}
+.bcard .mini label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);margin-bottom:2px;white-space:nowrap}
+.bcard .control{width:100%;min-height:32px;border:1px solid var(--line);border-radius:5px;padding:5px 6px;background:#fff;font-size:12.5px}
+.bcard select.control{padding:5px 6px}
+.bcard .sw{margin-top:2px}
+.bcard .field.full{grid-column:1 / -1}
+
+/* 저장 상태 배지 */
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--c2-bg);color:#155e46;border:1px solid #bfe0d3;font-size:11.5px;font-weight:800;white-space:nowrap}
+.status-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+
+/* ---------- 2번 경력 입력표를 1번 엑셀형 시트로 ---------- */
+.xscroll.table-wrap{overflow:auto;max-height:660px;padding:10px 12px 14px;background:#fff}
+table.sheet{border-collapse:collapse;table-layout:fixed;width:100%;min-width:1180px;font-family:'Malgun Gothic','맑은 고딕',var(--ko);font-size:12px;color:#000;background:#fff}
+table.sheet th,table.sheet td{border:1px solid #BFBFBF;padding:0;height:30px;vertical-align:middle;text-align:center;white-space:nowrap;overflow:hidden;position:relative}
+table.sheet thead th{position:sticky;top:0;z-index:3;background:#E8EEF6;color:#2B4A6F;font-weight:800;font-size:11.5px;padding:6px 4px;white-space:normal;line-height:1.25;border-color:#BFBFBF}
+table.sheet th:nth-child(1){width:92px}
+table.sheet th:nth-child(2){width:132px}
+table.sheet th:nth-child(3){width:132px}
+table.sheet th:nth-child(4){width:118px}
+table.sheet th:nth-child(5){width:210px}
+table.sheet th:nth-child(6){width:96px}
+table.sheet th:nth-child(7){width:132px}
+table.sheet th:nth-child(8){width:196px}
+table.sheet th:nth-child(9){width:104px}
+table.sheet td.rownum,table.sheet td:first-child{background:#F2F2F2;color:#444}
+table.sheet td:first-child{display:table-cell;padding:2px}
+table.sheet td:first-child .rownum{display:none}
+table.sheet td input,table.sheet td select{width:100%;min-width:0;height:30px;border:0;border-radius:0;outline:0;background:transparent;color:var(--ink);font-family:inherit;font-size:12px;text-align:center;padding:2px 4px}
+table.sheet td input.user,table.sheet td select.user{background:var(--yel)}
+table.sheet td input.auto{background:#fff;color:#33465C;cursor:default}
+table.sheet td input:focus,table.sheet td select:focus{outline:2px solid var(--xl);outline-offset:-2px;background:#FFF9E0;position:relative;z-index:2}
+table.sheet td select.career-scope{padding:2px 2px;font-size:11.5px}
+table.sheet td input.career-rate{padding-right:2px}
+table.sheet small.child-label{display:block;font-size:9.5px;line-height:1.1;color:#3b4d9a;font-weight:700;padding-bottom:2px}
+table.sheet td.special-cell{background:#F7FBF9;text-align:left;padding:3px 4px;white-space:normal;height:auto}
+table.sheet td.row-special{background:#EDF6F2!important}
+table.sheet td.row-special input.user,table.sheet td.row-special select.user{background:#E2F3EE}
+.special-fields{display:grid;gap:3px;min-width:150px}
+.special-fields label{font-size:10px;color:var(--muted);font-weight:700;display:grid;gap:2px;text-align:left}
+.special-fields input,.special-fields select{background:#fff;border:1px solid var(--line);border-radius:4px;height:24px;padding:0 4px;font-size:11px;text-align:left;color:var(--ink)}
+.special-cell .btn{margin:1px}
+table.sheet td:last-child .btn{padding:3px 6px;font-size:11px;margin:1px 0}
+
+/* 상세 탭 안쪽 표 */
+.tabpane .table-wrap-d{overflow-x:auto;max-height:420px;overflow-y:auto}
+table.data.ev tr.re td{background:#FFF6E3}
+table.sheet+*{margin-top:0}
+
+/* 입력 확인 목록 */
+#issues{margin:0;padding-left:20px;line-height:1.8;color:#9a5100;font-size:12.5px}
+.export-note{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.7}
+.sm{font-size:12.5px}
+
+/* 1번 스타일에 맞춘 인쇄: 호봉획정표 중심 */
+@media print{
+  @page{size:A4 landscape;margin:6mm}
+  table.sheet{min-width:0!important;width:100%!important;font-size:8.5pt}
+  table.sheet td.special-cell{display:none!important}
+  table.sheet th:nth-child(8),table.sheet th:nth-child(9){display:none!important}
+  table.sheet input,table.sheet select{border:0!important;background:#fff!important;color:#000!important}
+  .xscroll.table-wrap{max-height:none!important;overflow:visible!important;padding:0!important}
+}
+</style>
 </head>
-<body class="reference-ui">
-  <aside class="reference-rail" aria-label="입력 진행 및 저장 메뉴">
-    <div class="rail-brand"><span class="rail-badge">교육공무원</span><strong>호봉획정<br>프로그램</strong><small>경력 환산 · 승급기록 · 호봉획정 자동화<br>자료는 이 컴퓨터에만 저장됩니다.</small></div>
-    <div class="rail-section">안내도우미</div>
-    <button type="button" data-rail="help">? 사용설명서</button>
-    <button type="button" class="rail-primary" data-rail="example">예시 입력</button>
-    <button type="button" data-rail="work">표 호봉획정표 작성</button>
-    <div class="rail-section">입력 현황</div>
-    <div class="rail-progress"><b id="railProgressText">입력 자료를 확인하세요</b><i id="railProgressBar" style="width:0%"></i></div>
-    <div class="rail-section">저장 · 출력</div>
-    <button type="button" class="rail-primary" data-rail="excel">엑셀(xlsx) 결과 저장</button>
-    <button type="button" data-rail="print">인쇄 · PDF</button>
-    <button type="button" data-rail="save">현재 자료 저장</button>
-    <button type="button" class="rail-danger" data-rail="reset">전체 초기화</button>
-  </aside>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <div class="brand-badge">호봉</div>
-        <div>
-          <h1>교육공무원 호봉획정 프로그램</h1>
-          <p>경력 환산 · 호봉 재획정 · 승급기록 · 브라우저 저장</p>
-        </div>
-      </div>
-      <div class="top-actions">
-        <button class="btn btn-dark" id="btnExample">예시 입력</button>
-        <button class="btn btn-dark" id="btnSave">현재 자료 저장</button>
-        <button class="btn btn-dark" id="btnPrint">인쇄 · PDF</button>
-        <button class="btn btn-green" id="btnExcel">엑셀(xlsx) 결과 저장</button>
-        <button class="btn btn-danger" id="btnReset">전체 초기화</button>
-      </div>
-    </div>
-  </header>
+<body>
+<div class="app">
+<aside class="rail">
+<div class="brand"><span class="eat">교육공무원</span><b>호봉획정<br>프로그램</b><span class="tag">경력 환산 · 승급기록 · 호봉획정 자동화<br>자료는 이 컴퓨터에만 저장됩니다</span>
+<div class="rail-credit">
+<div class="mk">기준: 교육부 예규 제97호<br>호봉획정 사례집</div>
+<a class="portal" href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener noreferrer">★ 기준 프로그램</a>
+</div>
+</div>
+<div class="railsec cen">안내도우미</div>
+<div class="rail-tip" id="railTip">표의 <b>노란색 셀</b>만 채우면 경력 환산·승급기록·사정호봉이 자동 계산됩니다. 처음이면 <b>예시 입력</b>을 눌러 보세요.</div>
+<ul class="steps" id="steps">
+<li class="helprow"><button class="st helpbtn" data-rail="help" type="button"><span class="no">?</span>사용설명서</button><button class="rail-act sample" id="btnExample" type="button" title="기준 예제 자료를 채워 화면과 계산 결과를 바로 확인합니다">예시 입력</button></li>
+<li><button class="st on" data-rail="work" type="button"><span class="no">표</span>호봉획정표 작성</button></li>
+<li class="railsec" style="padding-top:8px">입력 현황</li>
+<li><div class="railprog"><div class="bar"><i id="railProgressBar"></i></div><b id="railProgressText">0/5</b></div></li>
+<li class="railsec" style="padding-top:6px">저장 · 출력</li>
+<li class="railacts">
+<button class="rail-act pri span2" id="btnExcel" type="button" title="현재 계산 결과를 엑셀(xlsx) 4개 시트로 저장">📊 엑셀(xlsx) 저장</button>
+<button class="rail-act" id="btnPrint" type="button" title="호봉획정표를 인쇄하거나 PDF로 저장">🖨 인쇄·PDF</button>
+<button class="rail-act" id="btnSave" type="button" title="현재 입력 자료를 이 브라우저에 저장">현재 자료 저장</button>
+<button class="rail-act" id="btnExportJson" type="button" title="입력 자료를 JSON 파일로 백업">JSON 백업</button>
+<button class="rail-act dang span2" id="btnReset" type="button" title="입력 자료와 저장된 내용을 모두 지웁니다">전체 초기화</button>
+</li>
+</ul>
+<div class="rail-foot">웹 단일파일 · 설치 없음 · 입력 자료는 이 브라우저(localStorage)에만 저장됩니다.</div>
+</aside>
+<main>
+<div class="mainrow">
+<div class="wrap">
+<header class="pagehead">
+<div class="row1">
+<div class="ttl"><h1>교육공무원 호봉획정 자동화</h1><p>노란색 셀에 입력 → 자동 계산 → 엑셀 저장 · 인쇄 · 교육부 예규 제97호와 호봉획정 사례집 기준으로 검토</p></div>
+</div>
+<div class="kpis">
+<div class="kpi hero"><div class="k">사정호봉</div><div class="v" id="resultStep">입력 대기</div><div class="s" id="baseStepView">기산호봉 —</div></div>
+<div class="kpi b"><div class="k">차기승급일</div><div class="v" id="nextPromotion">—</div><div class="s" id="reasonView">일반</div></div>
+<div class="kpi c"><div class="k">환산 경력 합계</div><div class="v" id="totalConverted">0년 0월 0일</div><div class="s">임용 전 + 임용 후</div></div>
+<div class="kpi d"><div class="k">경력 입력</div><div class="v" id="careerCount">0건</div><div class="s" id="remaining">근무년수 —</div></div>
+</div>
+</header>
 
-  <main class="page">
-    <section class="intro">
-      <div>
-        <h2>교육공무원 호봉획정 자동화</h2>
-        <p>노란색 셀에 입력하고, 교육부 예규 제97호와 교육공무원 호봉획정 사례집의 대표 사례 기준으로 경력기간·환산기간·결과를 검토합니다.</p>
-      </div>
-      <div class="legend">
-        <span class="legend-chip"><span class="dot input"></span>노란색 = 사용자 입력</span>
-        <span class="legend-chip"><span class="dot auto"></span>흰색 = 자동 계산</span>
-        <span class="legend-chip"><span class="dot special"></span>연두색 = 특수 경력</span>
-      </div>
-    </section>
+<section class="panel">
+<h2><span>계산 요약</span><span class="hint">사정호봉 · 승급기록 · 경력 집계</span></h2>
+<div class="body">
+<table class="calc">
+<tr><td class="k">임용 전 합계</td><td class="v" id="preTotal">—</td><td class="k">임용 후 합계</td><td class="v" id="postTotal">—</td></tr>
+<tr><td class="k">연속 경력 보정일</td><td class="v" id="correction">—</td><td class="k">학력 가감</td><td class="v" id="eduAdjustment">—</td></tr>
+<tr class="tot"><td class="k">근무년수 / 잔여월일</td><td class="v" id="remaining2">—</td><td class="k">승급 계산 잔여일</td><td class="v" id="carryDays">—</td></tr>
+</table>
+</div>
+</section>
 
-    <section class="settings-grid" aria-label="기본 정보 입력">
-      <article class="card setting-card">
-        <h3><span class="step">1</span>학력 산정</h3>
-        <div class="field-grid">
-          <div class="field">
-            <label for="schoolYears">학령(년)</label>
-            <input id="schoolYears" class="control" data-user-input="true" type="number" min="0" value="16">
-          </div>
-          <div class="field legacy-month" hidden>
-            <label for="schoolMonths">기존 학령 월 (0으로 확인)</label>
-            <input id="schoolMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0">
-          </div>
-          <div class="field">
-            <label for="extraYears">가산연수(년)</label>
-            <input id="extraYears" class="control" data-user-input="true" type="number" min="0" value="0">
-          </div>
-          <div class="field legacy-month" hidden>
-            <label for="extraMonths">기존 가산 월 (0으로 확인)</label>
-            <input id="extraMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0">
-          </div>
-          <div class="field full"><label><input type="checkbox" id="specialSchool"> 특수학교(학급) 가산 1년</label></div>
-        </div>
-      </article>
+<section class="band" id="band">
+<div class="bcard setting-card" id="bcEdu">
+<h3><i>1</i>학력 산정</h3>
+<div class="mini c2">
+<div><label for="schoolYears">학령(년)</label><input id="schoolYears" class="control" data-user-input="true" type="number" min="0" value="16"></div>
+<div><label for="extraYears">가산연수(년)</label><input id="extraYears" class="control" data-user-input="true" type="number" min="0" value="0"></div>
+<div class="field legacy-month" hidden><label for="schoolMonths">기존 학령 월 (0으로 확인)</label><input id="schoolMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0"></div>
+<div class="field legacy-month" hidden><label for="extraMonths">기존 가산 월 (0으로 확인)</label><input id="extraMonths" class="control" data-user-input="true" type="number" min="0" max="11" value="0"></div>
+</div>
+<label class="sw"><input type="checkbox" id="specialSchool"><span class="tg"></span><span class="lb">특수학교(학급) 가산 1년</span></label>
+<div class="res">학령·가산연수를 넣으면 학력 가감이 자동 반영됩니다.</div>
+</div>
 
-      <article class="card setting-card">
-        <h3><span class="step">2</span>자격 · 면허</h3>
-        <div class="field-grid">
-          <div class="field full">
-            <label for="baseStep">기산호봉</label>
-            <select id="baseStep" class="control" data-user-input="true">
-              <option value="">선택</option>
-              <option value="1">1호봉</option>
-              <option value="5">5호봉 (준교사·실기교사)</option><option value="8">8호봉 (2급)</option>
-              <option value="9" selected>9호봉 (1급)</option>
-              <option value="10">10호봉</option>
-              <option value="11">11호봉</option>
-              <option value="12">12호봉</option>
-            </select>
-          </div>
-          <div class="field full">
-            <label for="certificateDate">1급 정교사 자격 취득일</label>
-            <input id="certificateDate" class="control" data-user-input="true" type="date">
-          </div>
-        </div>
-      </article>
+<div class="bcard setting-card" id="bcCert">
+<h3><i>2</i>자격 · 면허</h3>
+<div class="mini c2">
+<div><label for="baseStep">기산호봉</label><select id="baseStep" class="control" data-user-input="true">
+<option value="">선택</option>
+<option value="1">1호봉</option>
+<option value="5">5호봉 (준교사·실기교사)</option><option value="8">8호봉 (2급)</option>
+<option value="9" selected>9호봉 (1급)</option>
+<option value="10">10호봉</option>
+<option value="11">11호봉</option>
+<option value="12">12호봉</option>
+</select></div>
+<div><label for="certificateDate">1급 정교사 자격 취득일</label><input id="certificateDate" class="control" data-user-input="true" type="date"></div>
+</div>
+<div class="res">자격을 고르면 기산호봉이 적용되고, 1정 취득일은 발급일 다음 달 1일 재획정으로 반영됩니다.</div>
+</div>
 
-      <article class="card setting-card">
-        <h3><span class="step">3</span>임용 · 기준일</h3>
-        <div class="field-grid">
-          <div class="field">
-            <label for="appointDate">임용일자</label>
-            <input id="appointDate" class="control" data-user-input="true" type="date">
-          </div>
-          <div class="field">
-            <label for="standardDate">획정기준일</label>
-            <input id="standardDate" class="control" data-user-input="true" type="date">
-          </div>
-        </div>
-        <div class="mini-row">
-          <button class="btn btn-outline btn-sm" data-adjust="-1y">−1년</button>
-          <button class="btn btn-outline btn-sm" data-adjust="-1m">−1월</button>
-          <button class="btn btn-outline btn-sm" data-adjust="-1d">−1일</button>
-          <button class="btn btn-outline btn-sm" data-adjust="+1d">+1일</button>
-          <button class="btn btn-outline btn-sm" data-adjust="+1m">+1월</button>
-          <button class="btn btn-outline btn-sm" data-adjust="+1y">+1년</button>
-          <button class="btn btn-outline btn-sm" id="btnSameDate">임용일과 같게</button>
-        </div>
-      </article>
+<div class="bcard setting-card" id="bcDate">
+<h3><i>3</i>임용 · 기준일</h3>
+<div class="mini c2">
+<div><label for="appointDate">임용일자</label><input id="appointDate" class="control" data-user-input="true" type="date"></div>
+<div><label for="standardDate">획정기준일</label><input id="standardDate" class="control" data-user-input="true" type="date"></div>
+</div>
+<div class="adjbtns">
+<span class="lbl">기준일 조정</span>
+<button type="button" data-adjust="-1y">−1년</button><button type="button" data-adjust="-1m">−1월</button><button type="button" data-adjust="-1d">−1일</button><button type="button" data-adjust="+1d">+1일</button><button type="button" data-adjust="+1m">+1월</button><button type="button" data-adjust="+1y">+1년</button><button type="button" id="btnSameDate">임용일과 같게</button>
+</div>
+<div class="res">임용 후 경력의 첫 행 시작일은 임용일로 자동 입력됩니다.</div>
+</div>
 
-      <article class="card setting-card">
-        <h3><span class="step">4</span>획정 옵션</h3>
-        <div class="field-grid">
-          <div class="field full">
-            <label for="reason">호봉획정사유</label>
-            <select id="reason" class="control" data-user-input="true">
-              <option value="일반">일반</option>
-              <option value="초임호봉획정">초임호봉획정</option>
-              <option value="계약제교원 임용">계약제교원 임용</option>
-            </select>
-          </div>
-          <div class="field full">
-            <label><input type="checkbox" id="limitStep"> 계약제교원 14호봉·근무 5년 상한</label>
-            <label for="parentalLimit">육아휴직 산입 상한</label>
-            <select id="parentalLimit" class="control" data-user-input="true">
-              <option value="12">1년</option>
-              <option value="18">1년 6개월</option>
-            </select>
-          </div>
-          <div class="field full">
-            <label for="casePreset">사례집 대표 사례</label>
-            <select id="casePreset" class="control" data-user-input="true">
-              <option value="">선택 안 함</option>
-              <option value="agency">교육지원청·재단법인 경력</option>
-              <option value="academy">학원강사·회사 경력</option>
-              <option value="leave">육아휴직 분할·복직 사례</option>
-            </select>
-            <button class="btn btn-warn btn-sm" id="btnApplyCase" type="button">사례 적용</button>
-          </div>
-        </div>
-      </article>
-    </section>
+<div class="bcard setting-card" id="bcOpt">
+<h3><i>4</i>획정 옵션</h3>
+<div class="opts">
+<div class="selrow reason"><span>호봉획정사유</span><select id="reason" class="control" data-user-input="true">
+<option value="일반">일반</option>
+<option value="초임호봉획정">초임호봉획정</option>
+<option value="계약제교원 임용">계약제교원 임용</option>
+</select></div>
+<div class="selrow"><span>육아휴직 산입 상한</span><select id="parentalLimit" class="control" data-user-input="true"><option value="12">1년</option><option value="18">1년 6개월</option></select></div>
+<div class="selrow"><span>사례집 대표 사례</span><select id="casePreset" class="control" data-user-input="true">
+<option value="">선택 안 함</option>
+<option value="agency">교육지원청·재단법인 경력</option>
+<option value="academy">학원강사·회사 경력</option>
+<option value="leave">육아휴직 분할·복직 사례</option>
+</select></div>
+</div>
+<div class="btnbar" style="margin-top:2px">
+<button class="btn sm2 ok" id="btnApplyCase" type="button">사례 적용</button>
+<label class="sw" style="margin-left:4px"><input type="checkbox" id="limitStep"><span class="tg"></span><span class="lb">계약제교원 14호봉·근무 5년 상한</span></label>
+</div>
+</div>
+</section>
 
-    <section class="workspace">
-      <article class="card sheet-card">
-        <div class="sheet-header">
-          <div>
-            <h3>호봉획정표</h3>
-            <p>임용 전은 산입 마지막 날까지 입력합니다. 임용 후는 시작일만 입력하며 마지막 행은 획정기준일 전날까지 계산합니다. 경력 유형을 선택하면 예규 별표 1의 기본 환산율이 적용됩니다.</p>
-          </div>
-          <div class="status-pill"><span class="status-dot"></span><span id="saveStatus">브라우저 자동저장 켜짐</span></div>
-        </div>
+<section class="xwrap sheet-card" id="xwrap">
+<div class="xbar">
+<span class="xt"><i>X</i>호봉획정표 <span class="xs mut sub">교육공무원 인사기록 및 인사사무 처리 규칙 별지 서식 · 교육부 예규 제97호</span></span>
+<span class="status-pill" id="saveStatus">브라우저 자동저장 켜짐</span>
+</div>
+<div class="fxbar"><span class="namebox" id="formulaAddress">—</span><span class="fxeq">fx</span><span class="fxval" id="formulaValue"><span class="mut">셀을 선택하면 입력값 또는 자동계산값이 표시됩니다</span></span><span class="lg"><i></i>노란색 = 입력 · 흰색 = 자동 계산</span></div>
+<div class="xscroll table-wrap">
+<table class="sheet" id="careerTable">
+<thead><tr>
+<th>No. / 구분</th>
+<th>경력 시작일</th>
+<th>산입 마지막 날</th>
+<th>기간(년/월/일)</th>
+<th>경력 내용</th>
+<th>환산율(%)</th>
+<th>환산기간(년/월/일)</th>
+<th>휴직·학위·시간강사</th>
+<th>삭제</th>
+</tr></thead>
+<tbody id="careerBody"></tbody>
+</table>
+</div>
+<div class="xnote">
+<span><b>임용 전</b> 산입 마지막 날까지 입력</span>
+<span><b>임용 후</b> 시작일만 입력 → 종료일 자동</span>
+<span><b>경력 유형</b> 선택 시 예규 별표 1 환산율 적용</span>
+<span><b>특수 경력</b> 연두색 셀에서 휴직·학위·시간강사 설정</span>
+</div>
+<div class="xbar">
+<button class="btn go" id="btnAddRow" type="button">+ 임용 전 경력</button>
+<button class="btn go" id="btnAddPost" type="button">+ 임용 후 경력</button>
+<button class="btn ok" id="btnAddLeave" type="button">+ 휴직 행</button>
+<button class="btn ok" id="btnAddDegree" type="button">+ 학위 행</button>
+<label class="btn sm2" for="jsonFile" style="cursor:pointer;margin:0;font-weight:700">JSON 불러오기</label>
+<input type="file" id="jsonFile" accept=".json" hidden>
+</div>
+</section>
 
-        <div class="formula-bar">
-          <div class="formula-address" id="formulaAddress">—</div>
-          <div class="formula-value" id="formulaValue">셀을 선택하면 입력값 또는 자동계산값을 표시합니다.</div>
-        </div>
+<section class="panel" id="detail" style="padding:0">
+<div class="tabs" id="tabs">
+<button type="button" data-tab="ev" class="on">승급기록</button>
+<button type="button" data-tab="child">육아휴직 자녀별 산입</button>
+<button type="button" data-tab="issues">입력 확인</button>
+</div>
+<div class="tabpane on" data-pane="ev">
+<div class="table-wrap-d"><table class="data ev"><thead><tr><th>발령일</th><th>구분</th><th>호봉</th><th>근무년수</th><th>잔여월일</th><th>차기승급일</th></tr></thead><tbody id="eventBody"></tbody></table></div>
+<div class="xs mut" style="margin-top:6px">징계 등 특이사항이 없는 일반적인 경우의 승급기록입니다. 휴직 중 승급은 복직일에 호봉재획정으로 반영됩니다.</div>
+</div>
+<div class="tabpane" data-pane="child">
+<table class="data"><thead><tr><th>자녀</th><th>시작일</th><th>마지막 날</th><th>전체 기간</th><th>산입 기간</th></tr></thead><tbody id="childBody"></tbody></table>
+</div>
+<div class="tabpane" data-pane="issues">
+<ul id="issues" role="status"></ul>
+<p id="migrationNotice" hidden></p>
+<p class="export-note">엑셀 저장은 현재 계산 결과를 4개 시트로 내보냅니다. 수식 재계산용 파일은 아니며, 입력 변경은 이 화면에서 처리한 뒤 다시 저장하세요.</p>
+</div>
+</section>
 
-        <div class="table-wrap">
-          <table class="sheet" id="careerTable">
-            <thead>
-              <tr>
-                <th>No. / 구분</th>
-                <th style="min-width:140px">경력 시작일</th>
-                <th style="min-width:140px">산입 마지막 날</th>
-                <th style="min-width:135px">기간(년/월/일)</th>
-                <th style="min-width:200px">경력 내용</th>
-                <th style="min-width:100px">환산율(%)</th>
-                <th style="min-width:150px">환산기간(년/월/일)</th>
-                <th style="min-width:125px">휴직·학위·시간강사</th>
-                <th style="min-width:80px">삭제</th>
-              </tr>
-            </thead>
-            <tbody id="careerBody"></tbody>
-          </table>
-        </div>
-
-        <div class="sheet-footer">
-          <button class="btn btn-primary" id="btnAddRow">+ 임용 전 경력</button>
-          <button class="btn btn-primary" id="btnAddPost">+ 임용 후 경력</button>
-          <button class="btn btn-warn" id="btnAddLeave">+ 휴직 행 추가</button>
-          <button class="btn btn-warn" id="btnAddDegree">+ 학위 행 추가</button>
-          <button class="btn btn-outline" id="btnExportJson">JSON 백업</button>
-          <label class="btn btn-outline" for="jsonFile" style="cursor:pointer">JSON 불러오기</label>
-          <input type="file" id="jsonFile" accept=".json" hidden>
-        </div>
-      </article>
-
-      <aside class="sidebar">
-        <section class="card result-card">
-          <h3>실시간 결과</h3>
-          <div class="result-primary">
-            <div class="metric">
-              <label>사정호봉</label>
-              <strong id="resultStep">입력 대기</strong>
-            </div>
-            <div class="metric">
-              <label>차기승급일</label>
-              <strong id="nextPromotion">—</strong>
-            </div>
-            <div class="metric wide">
-              <label>환산 경력 합계</label>
-              <strong id="totalConverted">0년 0월 0일</strong>
-            </div>
-          </div>
-
-          <div class="summary-list">
-            <div class="summary-item"><span>경력 입력 행</span><strong id="careerCount">0건</strong></div>
-            <div class="summary-item"><span>기산호봉</span><strong id="baseStepView">9호봉</strong></div>
-            <div class="summary-item"><span>획정사유</span><strong id="reasonView">일반</strong></div>
-            <div class="summary-item"><span>임용 전 합계</span><strong id="preTotal">—</strong></div>
-            <div class="summary-item"><span>임용 후 합계</span><strong id="postTotal">—</strong></div>
-            <div class="summary-item"><span>연속 경력 보정일</span><strong id="correction">—</strong></div>
-            <div class="summary-item"><span>학력 가감</span><strong id="eduAdjustment">—</strong></div>
-            <div class="summary-item"><span>근무년수 / 잔여월일</span><strong id="remaining">—</strong></div>
-            <div class="summary-item"><span>승급 계산 잔여일</span><strong id="carryDays">—</strong></div>
-          </div>
-        </section>
-
-        <section class="card help-card">
-          <h3>입력 도움말</h3>
-          <p id="helpText">노란색 셀은 사용자가 직접 입력하는 항목입니다. 흰색 셀은 입력값을 기준으로 자동 계산합니다. 경력 유형의 기본 환산율은 예규 제97호 별표 1을 반영했으며, 실제 적용은 경력증명서·전력조회 및 기관별 호봉경력평가심의회 결과를 확인하세요.</p>
-        </section>
-
-        <section class="notice">
-          <strong>적용 법령·예규·사례집</strong><br>
-          교육부 예규 제97호 「교육공무원 호봉획정시 경력환산율표의 적용 등에 관한 예규」(2025. 4. 23.)의 별표 1 경력환산율표 적용 기준과 별표 2 상향 인정 기준을 반영했습니다. 환산율의 최종 인정 여부, 학력·경력 중복, 특별승급·승급제한, 퇴직일 산입 여부는 증빙자료와 기관 심의를 기준으로 담당자가 확인해야 합니다.
-          <br><br><strong>계산 방식</strong><br>
-          교육공무원 호봉획정 사례집의 교육지원청·재단법인, 학원강사·회사, 육아휴직 대표 사례를 입력 프리셋으로 제공하며, 사례집 자체는 참고용이므로 실제 경력증명서·전력조회 결과에 맞게 수정해야 합니다. <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener">기준 프로그램(v1.3)</a>과 대조 검증했으며, 입력 종료일은 산입하는 마지막 날입니다.
-        </section>
-      </aside>
-    </section>
-
-    <section class="card details-card" aria-label="계산 검토">
-      <h3>입력 확인</h3><ul id="issues" role="status"></ul>
-      <p id="migrationNotice" hidden></p>
-      <details open><summary>승급기록</summary><div class="table-wrap">
-        <table class="detail-table"><thead><tr><th>발령일</th><th>구분</th><th>호봉</th><th>근무년수</th><th>잔여월일</th><th>차기승급일</th></tr></thead><tbody id="eventBody"></tbody></table>
-      </div></details>
-      <details><summary>육아휴직 자녀별 산입 내역</summary><div class="table-wrap"><table class="detail-table"><thead><tr><th>자녀</th><th>시작일</th><th>마지막 날</th><th>전체 기간</th><th>산입 기간</th></tr></thead><tbody id="childBody"></tbody></table></div></details>
-      <p class="export-note">엑셀 저장은 현재 계산 결과를 4개 시트로 내보냅니다. 수식 재계산용 파일은 아니며, 입력 변경은 이 화면에서 처리한 뒤 다시 저장하세요.</p>
-    </section>
-    <div class="footer">
-      교육공무원 호봉획정 프로그램 · 경력·승급 계산 · 입력 자료는 현재 브라우저의 localStorage에 저장됩니다.
-    </div>
-  </main>
-
-  <div class="toast" id="toast"></div>
-
-  <script src="hobong-engine.js"></script>
-  <script src="xlsx-export.js"></script>
-  <script src="app.js"></script>
+<section id="extras">
+<div class="bigbtns" style="margin-bottom:14px">
+<button class="bigbtn" id="bbExcel" type="button"><b>📊 엑셀(xlsx) 결과 저장</b><span>현재 계산 결과를 호봉획정 결과 · 입력 자료 · 승급기록 · 육아휴직 4개 시트로 저장합니다.</span></button>
+<button class="bigbtn" id="bbPrint" type="button"><b>🖨 인쇄 · PDF</b><span>호봉획정표를 A4로 인쇄하거나 PDF로 저장합니다.</span></button>
+<button class="bigbtn" id="bbSave" type="button"><b>💾 현재 자료 저장</b><span>입력 자료를 이 브라우저에 저장합니다(자동저장과 동일).</span></button>
+<button class="bigbtn dg" id="bbReset" type="button"><b>전체자료 초기화</b><span>입력 자료와 브라우저에 저장된 내용을 모두 지우고 처음 상태로 돌아갑니다.</span></button>
+</div>
+<div class="panel"><h2><span>프로그램 정보</span><span class="hint">예규 제97호 · 사례집 기준</span></h2><div class="body sm">
+<p style="margin:0 0 8px">교육공무원 호봉획정 자동화 — 경력 환산 · 승급기록 · 호봉획정표. 화면 구성은 <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener noreferrer">기준 프로그램</a>(단일 HTML)의 디자인을 적용했습니다.</p>
+<ul class="check" style="margin:0;padding-left:18px;color:#3b4753">
+<li>교육부 예규 제97호 「교육공무원 호봉획정시 경력환산율표의 적용 등에 관한 예규」(2025. 4. 23.) 별표 1 경력환산율표와 별표 2 상향 인정 기준을 반영했습니다.</li>
+<li>호봉획정 사례집의 교육지원청·재단법인, 학원강사·회사, 육아휴직 대표 사례를 입력 프리셋으로 제공합니다.</li>
+<li>임용 후 경력은 시작일만 입력하면 종료일이 다음 행 시작일 전날로 이어집니다.</li>
+<li>입력 자료는 브라우저 저장소(이 컴퓨터)에만 자동 저장되며 외부로 전송되지 않습니다. 환산율의 최종 인정 여부와 특별승급·승급제한은 담당자가 확인하세요.</li>
+</ul>
+</div></div>
+</section>
+</div>
+<aside class="helpside help-card" id="helpside"><div class="hs-head"><span class="q">?</span><span class="lbl">즉시 도움말</span><span class="sub">입력란에 커서를 두면 바뀝니다</span><button type="button" id="hsToggle" title="도움말 접기/펼치기">▸</button></div><div class="hs-body" id="helpBody">
+<h3>이 프로그램은 무엇인가요</h3>
+<p class="lead">교육공무원(교원)의 <b>호봉 획정·재획정</b>에 필요한 경력 환산과 승급기록을 한 화면에서 계산합니다. 표의 <b>노란색 셀</b>만 채우면 나머지는 자동 계산됩니다.</p>
+<div class="hx"><b>1</b>임용 전 경력은 산입하는 마지막 날까지, 임용 후 경력은 시작일만 입력합니다.</div>
+<div class="hx"><b>2</b>경력 유형을 고르면 예규 별표 1의 기본 환산율이 적용됩니다. 휴직은 <b>[+ 휴직 행]</b>, 대학원 학위는 <b>[+ 학위 행]</b>으로 추가하세요.</div>
+<div class="hx"><b>3</b>휴직·학위·시간강사는 <b>연두색 셀</b>에서 세부 방식을 설정합니다.</div>
+<p class="lead" style="margin-top:8px"><b>적용 법령·예규·사례집</b><br>교육부 예규 제97호(2025. 4. 23.) 별표 1 경력환산율표와 별표 2 상향 인정 기준, 호봉획정 사례집 대표 사례를 반영했습니다. 최종 인정 여부는 증빙자료와 기관 심의로 확인하세요.</p>
+<div class="href">기준 프로그램: <a href="https://scan0.pages.dev/auto_habong_master" target="_blank" rel="noopener noreferrer">scan0.pages.dev/auto_habong_master</a> · 입력 자료는 이 브라우저에만 저장됩니다.</div>
+</div></aside>
+</div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="hobong-engine.js"></script>
+<script src="xlsx-export.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  var tabs=document.querySelectorAll('#tabs button');
+  tabs.forEach(function(b){b.addEventListener('click',function(){
+    tabs.forEach(function(x){x.classList.toggle('on',x===b);});
+    document.querySelectorAll('.tabpane').forEach(function(p){p.classList.toggle('on',p.getAttribute('data-pane')===b.getAttribute('data-tab'));});
+  });});
+  var hs=document.getElementById('helpside'),t=document.getElementById('hsToggle');
+  function sync(){if(t)t.textContent=hs.classList.contains('min')?'◂':'▸';}
+  if(t)t.addEventListener('click',function(e){e.stopPropagation();hs.classList.toggle('min');sync();});
+  if(hs)hs.addEventListener('click',function(){if(hs.classList.contains('min')){hs.classList.remove('min');sync();}});
+  var link=function(btn,target){var b=document.getElementById(btn),g=document.getElementById(target);if(b&&g)b.addEventListener('click',function(){g.click();});};
+  link('bbExcel','btnExcel');link('bbPrint','btnPrint');link('bbSave','btnSave');link('bbReset','btnReset');
+  var r=document.getElementById('remaining');
+  if(r){var obs=new MutationObserver(function(){var r2=document.getElementById('remaining2');if(r2)r2.textContent=r.textContent;});obs.observe(r,{childList:true,characterData:true,subtree:true});}
+})();
+</script>
 </body>
 </html>
