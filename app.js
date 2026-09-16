@@ -104,10 +104,10 @@
     $('correction').textContent=(result.post.correction>0?'+':'')+result.post.correction+'일';
     $('eduAdjustment').textContent=(result.education>0?'+':'')+result.education+'년';
     $('remaining').textContent=current?`${current.years}년 / ${current.period.m}월 ${current.period.d}일`:'—';
-    $('carryDays').textContent=current&&!current.noNext?current.carry+'일':'—';
+    $('carryDays').textContent=current?current.carry+'일':'—';
     $('careerCount').textContent=data.careers.length+'건';$('baseStepView').textContent=data.settings.baseStep+'호봉';$('reasonView').textContent=data.settings.reason;
     $('issues').innerHTML=warnings.length?warnings.map(w=>`<li>${html(w)}</li>`).join(''):'<li>입력 오류 없음 — 경력 증빙과 적용 환산율을 대조해 주세요.</li>';
-    $('eventBody').innerHTML=result.events.slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${current?.noNext?'—':H.iso(e.next)}</td></tr>`).join('');
+    $('eventBody').innerHTML=result.events.slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
     $('childBody').innerHTML=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`)).join('');
   }
   function apply(data) {
@@ -132,7 +132,7 @@
     recalculate();const r=lastResult,s=collect(),c=r.result;
     const data=[{name:'호봉획정 결과',rows:[['항목','결과'],['사정호봉',$('resultStep').textContent],['차기승급일',$('nextPromotion').textContent],['환산 총 경력',H.text(H.split(r.total))],['임용 전 합계',H.text(H.split(r.preTotal))],['임용 후 합계',H.text(H.split(r.post.total))],['보정일',r.post.correction],['학력 가감',r.education],['잔여월일',$('remaining').textContent],['입력 확인',r.issues.join('\n')],['안내','현재 계산 결과(값)입니다. 입력 변경은 웹 화면에서 다시 계산하세요.']]},
       {name:'입력 자료',rows:[['항목','값'],...settings.map(id=>[$(id).labels?.[0]?.textContent?.trim()||id,s.settings[id]]),[],['구분','시작일','산입 마지막 날','내용','환산율','특수 경력','학위 상한(개월)','시간강사 방식','주당 시간','총 시간','평균 시간'],...s.careers.map(x=>[x.scope==='post'?'임용 후':'임용 전',x.start,x.end,x.desc,x.rate,x.kind,x.cap,x.part?.method||'',x.part?.hours||'',x.part?.total||'',x.part?.avg||''])]},
-      {name:'승급기록',rows:[['발령일','구분','호봉','근무년수','잔여월','잔여일','차기승급일'],...r.events.map(e=>[H.iso(e.date),e.type,e.step,e.period.y,e.period.m,e.period.d,c?.noNext?'없음':H.iso(e.next)])]},
+      {name:'승급기록',rows:[['발령일','구분','호봉','근무년수','잔여월','잔여일','차기승급일'],...r.events.map(e=>[H.iso(e.date),e.type,e.step,e.period.y,e.period.m,e.period.d,s.settings.reason==='계약제교원 임용'&&e.date===H.parse(s.settings.standardDate)?'없음':H.iso(e.next)])]},
       {name:'육아휴직',rows:[['자녀','시작일','산입 마지막 날','전체 기간','산입 기간'],...Object.entries(r.post.children).flatMap(([child,items])=>items.map(x=>[child,H.iso(x.start),H.iso(x.end),H.text(H.split(x.days)),H.text(H.split(x.counted))]))]}];
     download('교육공무원_호봉획정_결과.xlsx',window.makeXlsx(data),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   }
