@@ -97,10 +97,8 @@
     if (appointment==null || base==null) return out;
     const eligible=rows.filter(r=>{
       if(r.start==null) { r.warnings.push('시작일을 입력하세요.'); return false; }
-      if(r.start<appointment || r.start>=base) {
-        if(r.start!==base) r.warnings.push('임용일~획정기준일 전날 범위의 날짜를 입력하세요.');
-        return false;
-      }
+      if(r.start<appointment) { r.warnings.push('임용일 이전 — 임용 전 경력(2단계)에 넣으세요.'); return false; }
+   if(r.start>=base) { r.warnings.push('획정기준일 이후 — 산입되지 않음'); return false; }
       return true;
     });
     eligible.forEach((r,i)=>{
