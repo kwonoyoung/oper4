@@ -25,7 +25,7 @@
   function todayN(){ const t=new Date(); return dser(t.getFullYear(),t.getMonth()+1,t.getDate()); }
 
   const capMonths=v=>{ const n=+v; return isFinite(n)&&n>0?Math.round(n):0; };
-  const textUnits=t=>[...String(t||'')].reduce((a,ch)=>a+(/[\u1100-\u11FF\u3000-\u303F\u3130-\u318F\uAC00-\uD7AF\uFF00-\uFFEF\u4E00-\u9FFF]/.test(ch)?1.9:0.95),0);
+  const textUnits=t=>[...String(t||'')].reduce((a,ch)=>a+(/[ᄀ-ᇿ　-〿㄰-㆏가-힯＀-￯一-鿿]/.test(ch)?1.9:0.95),0);
   const textLines=(t,capUnits)=>Math.max(1,Math.ceil(textUnits(t)/Math.max(1,capUnits-1)));
   const ymdStr=(daysRef)=>`"( "&TEXT(INT(${daysRef}/360),"00")&"."&TEXT(INT(MOD(${daysRef},360)/30),"00")&"."&TEXT(MOD(${daysRef},30),"00")&" )"`;
 
@@ -161,7 +161,10 @@
       else if(row&&nodate) A.set(`F${r}`,'-',F.in); else A.set(`F${r}`,row?{date:row.to}:null,F.inD);
       A.set(`I${r}`,row?trim(row.text):null,F.inW); if(row){ const ln=textLines(trim(row.text),23.6); if(ln>1) A.height(r,Math.max(rhData,ln*13.5+6)); }
       A.set(`L${r}`,null,F.fx,`계산!AC${6+i}`);
-      if(row&&row.pct==='child') A.set(`O${r}`,'육아휴직',F.in); else A.set(`O${r}`,row&&row.pct!==''&&row.pct!=null?+row.pct:null,F.inP);
+      if(row&&row.pct==='child') A.set(`O${r}`,'육아휴직',F.in);
+      else if(row&&row.pct==='child3') A.set(`O${r}`,'육아휴직(셋째)',F.in);
+      else if(row&&row.pct==='familyCare') A.set(`O${r}`,'가족돌봄휴직',F.in);
+      else A.set(`O${r}`,row&&row.pct!==''&&row.pct!=null?+row.pct:null,F.inP);
       A.set(`P${r}`,null,F.fx,`계산!AF${6+i}`);
       A.set(`S${r}`,row?trim(row.note):null,F.inS);
       if(p&&it.c&&it.c.spanned){ A.set(`U${r}`,`${p.method}*`,F.aux); A.set(`V${r}`,p.method===1?+p.hours||null:(+p.total||null),F.aux); A.set(`W${r}`,null,F.aux); A.set(`X${r}`,it.c.rateDays||null,F.aux); }
@@ -226,7 +229,7 @@
     termFormulas(C,['T','U','V','W','X','Y','Z','AA','AB'],3,base,'(M3-1)',`AND(ISNUMBER(${base}),ISNUMBER(M3))`,F.calc);
     C.set('N3',null,F.calc,`IF(ISNUMBER(M3),MAX(0,Z3*360+AA3*30+AB3+I3-360),0)`);
     C.set('O3',null,F.calc,`IF(OR(자료!B10="",자료!B9<>9),1,IF(${base}>자료!B10,1,0))`);
-    C.set('P3',null,F.calc,`F3+자료!B7+자료!B9-1+O3-자료!B16`); C.set('Q3',null,F.calc,`IF(자료!B14=1,MIN(P3,14),P3)`); C.set('R3',null,F.calc,`IF(자료!B14=1,MIN(F3,5),F3)`); C.set('S3',null,F.calcD,`IF(자료!B16=1,DATE(YEAR(${base}),MONTH(${base})+1,1),M3)`);
+    C.set('P3',null,F.calc,`F3+자료!B7+자료!B9-1+O3-자료!B16`); C.set('Q3',null,F.calc,`IF(자료!B14=1,MIN(P3,14),P3)`); C.set('R3',null,F.calc,`F3`); C.set('S3',null,F.calcD,`IF(자료!B16=1,DATE(YEAR(${base}),MONTH(${base})+1,1),M3)`);
     const hdr=['순번','구분','시작','종료','환산율','유효','육아','자녀','pct','isE','dPrev','anni','ry0','rm0','rd0','ry','rm','rd','방법','시간','평균입력','고정일수','기간일수','평균(시기)','주당시간','분자','분모','경력일수(표시)','경력기간','육아누적(이전)','환산일수','환산기간','100%산입','육아부분','상한도달일','이전100%','합산시작','다음100%','다음육아부분','합산종료','합산유효','isE2','dPrev2','anni2','ry0','rm0','rd0','ry','rm','rd','합산일수','기여일수','학위상한(일)'];
     hdr.forEach((h,i)=>C.set(`${CN(i)}5`,h,F.calcH)); C.height(5,30);
     const cap='(자료!$B$15*30)';
