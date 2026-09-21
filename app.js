@@ -239,6 +239,34 @@
   $('btnNew').onclick=()=>{clearTimeout(timer);download('호봉획정_이전대상자.json',JSON.stringify(collect(),null,2),'application/json');apply({version:2,settings:defaults,careers:[]});save();navigate('who');toast('이전 대상자를 JSON으로 백업하고 새 입력을 시작합니다.');};
   $('btnImportExcel').onclick=()=>$('excelFile').click();
   $('excelFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;const data=await window.HobongImport(file);if(!confirm('현재 입력을 선택한 엑셀 자료로 바꿀까요?'))return;download('호봉획정_불러오기전_백업.json',JSON.stringify(collect(),null,2),'application/json');apply(data);save();toast('엑셀 입력을 불러와 다시 계산했습니다. 입력 확인을 검토하세요.');}catch(err){alert('엑셀 불러오기 실패: '+err.message);}finally{e.target.value='';}};
+
+  // 서비스 표기: VibeCoding 업무지원 페이지와 동일한 명칭을 좌측 상단에 표시합니다.
+  (function addProgramBranding(){
+    const style=document.createElement('style');
+    style.textContent=`
+      .oper4-service-brand{padding:18px 20px 15px;border-bottom:1px solid #dedbd2;background:linear-gradient(135deg,#082f4d,#0d5879 58%,#0b8b82);color:#fff;font-size:15px;font-weight:900;line-height:1.35;letter-spacing:-.02em}
+      .oper4-service-brand small{display:block;margin-top:4px;color:#b9e5e2;font-size:10px;letter-spacing:.08em;font-weight:800}
+      .oper4-program-footer{width:100%;padding:24px 16px 28px;text-align:center;color:#73858f;font-size:11px;line-height:1.7}
+      @media(max-width:900px){.oper4-service-brand{padding:14px 16px}.oper4-program-footer{padding:20px 12px 26px}}
+      @media print{.oper4-service-brand,.oper4-program-footer{display:none!important}}
+    `;
+    document.head.append(style);
+    const rail=document.querySelector('.rail');
+    if(rail&&!rail.querySelector('.oper4-service-brand')){
+      const brand=document.createElement('div');
+      brand.className='oper4-service-brand';
+      brand.innerHTML='오춘기 권오영 업무지원 서비스<small>VIBE CODING · HOBONG TOOL</small>';
+      rail.prepend(brand);
+    }
+    const main=document.querySelector('main');
+    if(main&&!main.querySelector('.oper4-program-footer')){
+      const footer=document.createElement('div');
+      footer.className='oper4-program-footer';
+      footer.textContent='2026. Program by Kwon O Young.';
+      main.append(footer);
+    }
+  })();
+
   window.addEventListener('pagehide',()=>{if(timer){clearTimeout(timer);save();}});
   let restored=false;
   try{const raw=localStorage.getItem(KEY)||localStorage.getItem(OLD);if(raw){apply(JSON.parse(raw));restored=true;}}catch(e){toast('저장 자료를 읽지 못했습니다. 원본은 유지됩니다.');}
