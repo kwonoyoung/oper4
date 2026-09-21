@@ -62,7 +62,7 @@ ready(function(){
  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
  const importBtn=$('#btnImportExcel');
  if(importBtn){
-  importBtn.textContent='📥 저장한 호봉 엑셀 불러오기';
+  importBtn.textContent='엑셀 불러오기';
   importBtn.title='이 프로그램에서 저장한 표준 호봉획정 XLSX 파일의 입력값을 다시 불러와 재계산합니다.';
  }
  const style=document.createElement('style');
