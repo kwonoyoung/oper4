@@ -133,7 +133,48 @@
     document.querySelectorAll('[data-section]').forEach((btn,i)=>{btn.parentElement.classList.toggle('done',checks[i]);btn.querySelector('em').textContent=checks[i]?'완료':'미입력';});
     $('issues').innerHTML=warnings.length?warnings.map(w=>`<li>${html(w)}</li>`).join(''):'<li>입력 오류 없음 — 경력 증빙과 적용 환산율을 대조해 주세요.</li>';
     $('eventBody').innerHTML=(current?result.events:[]).slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
-    $('childBody').innerHTML=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`)).join('');
+    const childRows=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`));
+    $('childBody').innerHTML=childRows.join('');
+    $('childEmpty').hidden=childRows.length>0;
+    renderCalcDetail(data,result,current);
+    renderCareerChart(data);
+  }
+  function renderCalcDetail(data,result,current){
+    const s=data.settings;
+    const rowsHtml=[
+      ['자격증·기산호봉',`${html(s.certificateName||'—')} · ${s.baseStep||0}호봉`],
+      ['학력 가감(학령−16+가산연수+특수학교)',(result.education>0?'+':'')+result.education+'년'],
+      ['임용 전 경력 환산 합계',H.text(H.split(result.preTotal))],
+      ['임용 후 경력 환산 합계',H.text(H.split(result.post.total))],
+      ['임용 후 교정일수',(result.post.correction>0?'+':'')+result.post.correction+'일'],
+      ['총 환산 경력',H.text(H.split(result.total))],
+    ];
+    let out=rowsHtml.map(([k,v])=>`<tr><td class="k">${k}</td><td class="v">${html(v)}</td></tr>`).join('');
+    if(current){
+      out+=`<tr class="hi"><td class="k">산정 호봉</td><td class="v">${current.step}호봉</td></tr>`;
+      out+=`<tr><td class="k">차기 승급 산입일수</td><td class="v">${current.carry}일</td></tr>`;
+      out+=`<tr class="tot"><td class="k">차기 승급일</td><td class="v">${current.noNext?'없음 (계약제)':H.iso(current.next)}</td></tr>`;
+    } else {
+      out+=`<tr class="hi"><td class="k">산정 호봉</td><td class="v">입력 확인 필요</td></tr>`;
+    }
+    $('calcBody').innerHTML=out;
+  }
+  function renderCareerChart(data){
+    const rows=data.careers.filter(active).map(r=>({scope:r.scope,start:H.parse(r.start),end:H.parse(r.end)||H.parse(data.settings.standardDate),desc:r.desc||'',kind:r.kind}));
+    const valid=rows.filter(r=>r.start!=null&&r.end!=null&&r.end>=r.start);
+    const el=$('careerChart'),legend=$('careerChartLegend');
+    if(!valid.length){el.innerHTML='<p class="mut sm" style="padding:8px 0">표시할 경력 자료가 없습니다.</p>';legend.innerHTML='';return;}
+    const min=Math.min(...valid.map(r=>r.start)),max=Math.max(...valid.map(r=>r.end));
+    const span=Math.max(1,max-min),W=900,rowH=22,pad=6,H2=valid.length*(rowH+pad)+pad;
+    const color=r=>r.scope==='pre'?'var(--c4)':(/휴직|leave|child|sick/i.test(r.kind||'')||/휴직/.test(r.desc)?'var(--warn)':'var(--c2)');
+    const bars=valid.map((r,i)=>{
+      const x=((r.start-min)/span)*(W-140)+140,w=Math.max(2,((r.end-r.start)/span)*(W-140));
+      const y=pad+i*(rowH+pad);
+      return `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${rowH}" rx="3" fill="${color(r)}"></rect>
+        <text x="4" y="${y+rowH/2+4}" font-size="11" fill="var(--ink)">${html((r.scope==='pre'?'[전] ':'[후] ')+(r.desc||'경력'))}</text>`;
+    }).join('');
+    el.innerHTML=`<svg viewBox="0 0 ${W} ${H2}" width="${W}" height="${H2}">${bars}</svg>`;
+    legend.innerHTML=`<span><i style="background:var(--c4)"></i>임용 전 경력</span><span><i style="background:var(--c2)"></i>임용 후 근무</span><span><i style="background:var(--warn)"></i>휴직</span>`;
   }
   function apply(data) {
     if(!data||!data.settings||!Array.isArray(data.careers))throw new Error('호봉획정 JSON 형식이 아닙니다.');
@@ -236,7 +277,16 @@
   Object.entries(targets).filter(([k])=>!['pre','post'].includes(k)).forEach(([key,id])=>$(id).addEventListener('focusin',()=>{$('helpBody').innerHTML=helpText[key];}));
   body.addEventListener('focusin',e=>{const row=e.target.closest('tr');if(row)$('helpBody').innerHTML=helpText[row.querySelector('.career-scope').value];});
   $('railSaveStatus').onclick=()=>save(true);
-  $('btnNew').onclick=()=>{clearTimeout(timer);download('호봉획정_이전대상자.json',JSON.stringify(collect(),null,2),'application/json');apply({version:2,settings:defaults,careers:[]});save();navigate('who');toast('이전 대상자를 JSON으로 백업하고 새 입력을 시작합니다.');};
+  const keepOnNewSubject=['writerPos','writerName','selfPos','selfName','checkerPos','checkerName'];
+  $('btnNew').onclick=()=>{
+    if(!confirm('현재 대상자의 경력·인적 자료를 지우고 새 대상자 입력을 시작할까요? 작성자·본인·확인자 정보는 유지됩니다.'))return;
+    clearTimeout(timer);
+    download('호봉획정_이전대상자.json',JSON.stringify(collect(),null,2),'application/json');
+    const kept=Object.fromEntries(keepOnNewSubject.map(id=>[id,$(id).value]));
+    apply({version:2,settings:{...defaults,...kept},careers:[]});
+    save();navigate('who');
+    toast('새 대상자 시작 — 작성자·본인·확인자 정보는 유지했습니다. 이전 자료는 JSON으로 백업했습니다.');
+  };
   $('btnImportExcel').onclick=()=>$('excelFile').click();
   $('excelFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;const data=await window.HobongImport(file);if(!confirm('현재 입력을 선택한 엑셀 자료로 바꿀까요?'))return;download('호봉획정_불러오기전_백업.json',JSON.stringify(collect(),null,2),'application/json');apply(data);save();toast('엑셀 입력을 불러와 다시 계산했습니다. 입력 확인을 검토하세요.');}catch(err){alert('엑셀 불러오기 실패: '+err.message);}finally{e.target.value='';}};
 
@@ -272,4 +322,3 @@
   try{const raw=localStorage.getItem(KEY)||localStorage.getItem(OLD);if(raw){apply(JSON.parse(raw));restored=true;}}catch(e){toast('저장 자료를 읽지 못했습니다. 원본은 유지됩니다.');}
   if(!restored){addRow();addRow({scope:'post',desc:'근무'});recalculate();}
 })();
-
