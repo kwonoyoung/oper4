@@ -105,11 +105,13 @@
       r.end=i+1<eligible.length?eligible[i+1].start-1:base-1;
       if(i && r.start<=eligible[i-1].start) r.warnings.push('임용 후 시작일을 오름차순으로 입력하세요.');
       if(r.end<r.start) { r.warnings.push('다음 행 시작일을 확인하세요.'); return; }
-      if(r.rate!=='child'&&(r.rate===''||!Number.isFinite(Number(r.rate))||Number(r.rate)<0||Number(r.rate)>100)){r.warnings.push('환산율은 0~100 사이로 입력하세요.');return;}
+      if(!['child','child3','familyCare'].includes(r.rate)&&(r.rate===''||!Number.isFinite(Number(r.rate))||Number(r.rate)<0||Number(r.rate)>100)){r.warnings.push('환산율은 0~100 사이로 입력하세요.');return;}
       r.valid=true; r.days=units(period(r.start,r.end));
       r.leave=/휴직/.test(r.desc||'');
       r.childLimited=r.rate==='child' && [1,2].includes(Number(r.child));
-      if(!r.childLimited) r.converted=prorate(r.days,Number(r.rate)||0);
+      r.child3Limited=r.rate==='child3';
+      r.familyCareLimited=r.rate==='familyCare';
+      if(!r.childLimited && !r.child3Limited && !r.familyCareLimited) r.converted=prorate(r.days,Number(r.rate)||0);
     });
     const valid=rows.filter(r=>r.valid);
     for(const child of [1,2]) {
@@ -119,12 +121,26 @@
         out.children[child].push({start:r.start,end:r.end,days:r.days,counted:r.converted});
       }
     }
+    { // 셋째 이상 자녀 육아휴직: 36개월(3년) 산입 상한.
+      let used=0;
+      for(const r of valid.filter(r=>r.child3Limited)) {
+        r.converted=Math.min(r.days,Math.max(0,36*30-used)); used+=r.days;
+      }
+    }
+    { // 가족돌봄휴직: 2026-01-01 이후 시작분만 첫 90일 산입 (공무원보수규정 개정, 대통령령 제36501호).
+      // 부칙 경과규정(2026-01-01 이전 개시분의 경과일수 이월)은 미구현 — 그 경우는 산입 0으로 처리하고 경고를 남긴다.
+      let used=0; const familyCareEffective=parse('2026-01-01');
+      for(const r of valid.filter(r=>r.familyCareLimited)) {
+        if(r.start>=familyCareEffective) { r.converted=Math.min(r.days,Math.max(0,90-used)); used+=r.days; }
+        else { r.converted=0; r.warnings.push('2026-01-01 이전에 시작한 가족돌봄휴직의 90일 산입 경과규정은 자동 계산되지 않습니다. 담당자가 수동으로 확인하세요.'); }
+      }
+    }
     // Keep each partial-rate row as its own segment. Only fully counted adjacent
     // post-appointment rows share a calendar interval (pre rows stay separate).
     const boundaries=new Set(); let previous=null;
     for(const r of valid) {
       r.full=r.converted===r.days;
-      r.partialChild=r.childLimited && !r.full;
+      r.partialChild=(r.childLimited||r.child3Limited||r.familyCareLimited) && !r.full;
       if(r.partialChild) r.capDate=afterPeriod(r.start,split(r.converted));
       if(!r.full || previous===null || !previous) boundaries.add(r.partialChild?r.capDate:r.start);
       if(r.partialChild && (previous===null || !previous)) boundaries.add(r.start);
@@ -202,7 +218,7 @@
     const rem=current.period.m*30+current.period.d;
     const regularNext=nextMonth(shiftMonth(base,Math.floor((360-rem)/30))+(360-rem)%30-1);
     r.result={...current,step:cfg.limitStep?Math.min(current.step,14):current.step,
-      years:cfg.limitStep?Math.min(current.period.y,5):current.period.y,
+      years:current.period.y,
       noNext:cfg.reason==='계약제교원 임용',
       carry:Math.max(0,units(period(base,regularNext-1))+rem-360)};
     return r;
