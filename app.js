@@ -16,10 +16,13 @@
     ['publicAgency','공공기관·공공법인',50],['foundation','재단법인 근무',30],['alternative','대안교육 위탁교육기관',70],
     ['academy','등록 학원·교습소 강사',50],['academyUnregistered','미등록 학원·교습소(객관자료)',30],['company','일반 회사 근무',40],
     ['religious','종교법인 교육활동',60],['lawyer','변호사·법무사 업무',70],['teacherUnion','교원 노동조합 근무',70],
+    ['disabledRehab','장애인 지역사회재활시설 근무',80],['tempStaff','임시직·촉탁·잡급·학교회계직원 근무',80],
+    ['overseasEdu','재외교육기관·재외교육단체 근무',50],['militaryAlt','병역법 대체복무(예술체육요원 등)',100],
     ['sick','질병휴직',0],['official','공무상 질병휴직',100],['military','병역휴직',100],['duty','법정의무수행휴직',100],['study','유학휴직',100],
     ['partLeave','고용휴직(비상근)',50],['fullLeave','고용휴직(상근)',100],['adopt','입양휴직',100],['fertility','불임난임휴직',0],
     ['child1','육아휴직(첫째)','child',1],['child2','육아휴직(둘째)','child',2],['child3','육아휴직(셋째 이상)',100,3],
     ['training','국내연수휴직',0],['degreeLeave','국내연수휴직(학위취득)',100],['family','가사휴직',0],['accompany','동반휴직',0],
+    ['familyCare','가족돌봄휴직',0],
     ['union','노조전임자휴직',100],['selfTraining','자율연수휴직',0],['degree','대학원 학위',100],['part','시간강사',100]
   ];
   let timer,lastResult,canExport=false;
@@ -42,7 +45,7 @@
       <td><input class="user career-rate" type="number" min="0" max="100" step="0.01" aria-label="환산율"><small class="child-label" hidden>자녀별 상한 적용</small></td>
       <td><input class="auto converted-period" readonly aria-label="환산 기간"></td>
       <td class="special-cell"><div class="special-fields"><select class="career-kind" aria-label="특수 경력 종류">${kinds.map(k=>`<option value="${k[0]}">${k[1]}</option>`).join('')}</select>
-        <label class="cap-field" hidden>학위 상한<select class="career-cap" aria-label="학위 상한"><option value="0">없음</option><option value="24">석사 2년</option><option value="30">석사 2년 6개월</option><option value="36">박사 3년</option></select></label>
+        <label class="cap-field" hidden>산입 상한(개월)<select class="career-cap" aria-label="산입 상한(개월)"><option value="0">없음</option><option value="24">석사 2년 / 24개월</option><option value="30">석사 2년 6개월</option><option value="36">박사 3년 / 병역 대체복무 3년</option></select></label>
         <div class="part-fields" hidden><label>시간강사 방식<select class="part-method" aria-label="시간강사 방식"><option value="1">주당 근무시간</option><option value="2">총 시간 → 주당 환산</option><option value="3">비연속 총 근무시간</option><option value="4">30% 적용</option></select></label>
           <label class="hours-field">주당 근무시간<input type="number" min="0" class="part-hours" aria-label="주당 근무시간" value="20"></label>
           <label class="total-field">총 근무시간<input type="number" min="0" class="part-total" aria-label="총 근무시간" value="0"></label>
@@ -60,6 +63,7 @@
         const selected=kinds.find(k=>k[0]===e.target.value);tr.dataset.kind=selected[0];
         if(selected[0]!=='normal') {set('career-desc',selected[1]);set('career-rate',selected[2]==='child'?100:selected[2]);}
         if(selected[0]==='degree') {set('career-scope','pre');if(!Number(tr.querySelector('.career-cap').value))set('career-cap',24);}
+        if(selected[0]==='militaryAlt') {set('career-scope','pre');set('career-cap',36);}
         if(selected[0]==='part') set('career-scope','pre');
         if(/휴직/.test(selected[1])) set('career-scope','post');
       }
@@ -73,9 +77,11 @@
   }
   function rowData(tr) {
     const val=cls=>tr.querySelector('.'+cls).value,kind=val('career-kind'),limited=kind==='child1'||kind==='child2';
+    const child3=kind==='child3',familyCare=kind==='familyCare';
     return {scope:val('career-scope'),start:val('career-start'),end:val('career-end'),desc:val('career-desc'),kind,
-      rate:limited?'child':val('career-rate'),child:limited?Number(kind.slice(-1)):kind==='child3'?3:0,
-      cap:kind==='degree'?Number(val('career-cap')):0,
+      rate:limited?'child':child3?'child3':familyCare?'familyCare':val('career-rate'),
+      child:limited?Number(kind.slice(-1)):child3?3:0,
+      cap:(kind==='degree'||kind==='militaryAlt')?Number(val('career-cap')):0,
       part:kind==='part'?{method:Number(val('part-method')),hours:Number(val('part-hours')),total:Number(val('part-total')),avg:Number(val('part-avg'))}:null};
   }
   function collect() {
@@ -87,11 +93,11 @@
     rows.forEach((tr,i)=>{
       tr.querySelector('.rownum').textContent=i+1;
       const scope=tr.querySelector('.career-scope').value,kind=tr.querySelector('.career-kind').value;
-      tr.querySelector('.cap-field').hidden=kind!=='degree';tr.querySelector('.part-fields').hidden=kind!=='part';
+      tr.querySelector('.cap-field').hidden=kind!=='degree'&&kind!=='militaryAlt';tr.querySelector('.part-fields').hidden=kind!=='part';
       const method=tr.querySelector('.part-method').value;
       tr.querySelector('.hours-field').hidden=method!=='1';tr.querySelector('.total-field').hidden=!['2','3'].includes(method);tr.querySelector('.avg-field').hidden=method!=='3';
       tr.querySelectorAll('td').forEach(td=>td.classList.toggle('row-special',kind!=='normal'));
-      const isChild=kind==='child1'||kind==='child2';tr.querySelector('.career-rate').readOnly=isChild;tr.querySelector('.child-label').hidden=!isChild;
+      const isChild=kind==='child1'||kind==='child2'||kind==='child3'||kind==='familyCare';tr.querySelector('.career-rate').readOnly=isChild;tr.querySelector('.child-label').hidden=!isChild;
       tr.querySelector('.career-end').readOnly=scope==='post';tr.querySelector('.career-start').readOnly=scope==='post'&&post[0]===tr;
       tr.querySelector('.career-period').value='';tr.querySelector('.converted-period').value='';
     });
@@ -110,8 +116,8 @@
     });
     const warnings=[...result.issues];
     if(!post.length && H.parse(data.settings.standardDate)>H.parse(data.settings.appointDate))warnings.push('임용 후 경력이 없습니다. 근무기간이 있으면 임용 후 경력 행을 추가하세요.');
-    const incompatible=data.careers.some(r=>(r.scope==='post'&&(r.cap||r.part))||(r.scope==='pre'&&r.rate==='child'));
-    if(incompatible)warnings.push('학위·시간강사는 임용 전, 자녀별 육아휴직은 임용 후로 입력하세요.');
+    const incompatible=data.careers.some(r=>(r.scope==='post'&&(r.cap||r.part))||(r.scope==='pre'&&['child','child3','familyCare'].includes(r.rate)));
+    if(incompatible)warnings.push('학위·시간강사·병역법 대체복무는 임용 전, 육아휴직·가족돌봄휴직은 임용 후로 입력하세요.');
     const legacyMonths=Number(data.settings.schoolMonths)||Number(data.settings.extraMonths);
     // 경고가 있는 상태에서 숫자 호봉을 보여주면 잘못된 입력을 확정값으로
     // 오인할 수 있다. 날짜·환산율·기준일 오류가 해소될 때까지 결과를 보류한다.
@@ -208,6 +214,14 @@
   function exportExcel(){
     recalculate();if(!canExport){toast('입력 확인의 오류를 먼저 수정하세요.');document.querySelector('[data-tab=issues]').click();$('detail').scrollIntoView();return;}const r=lastResult,d=collect(),s=d.settings;
     const rows=d.careers.filter(active);
+    // 엑셀 "계산" 시트의 수식은 육아휴직(첫째·둘째) 12/18개월 상한만 재현합니다.
+    // 육아휴직(셋째 이상) 36개월 상한·가족돌봄휴직 90일 상한은 엑셀 수식에 아직
+    // 반영되지 않았으므로, 해당 경력이 있으면 잘못된 환산결과가 엑셀에 표시되는
+    // 것을 막기 위해 내보내기를 차단합니다. 화면상 계산 결과(정확함)를 사용하세요.
+    if(rows.some(x=>x.rate==='child3'||x.rate==='familyCare')){
+      toast('육아휴직(셋째 이상)·가족돌봄휴직이 포함된 자료는 엑셀 저장을 지원하지 않습니다. 화면의 계산 결과를 사용하세요.');
+      return;
+    }
     const children={};Object.entries(r.post.children||{}).forEach(([child,items])=>{children[child]=items.map(x=>({start:x.start,end:x.end,termStr:H.text(H.split(x.days)),countedStr:H.text(H.split(x.counted)),exceed:null}));});
     const S={who:{org:s.org,name:s.personName,pos:s.position},form:{formTitle:'',curHobong:s.currentStep,writerPos:s.writerPos,writerName:s.writerName,selfPos:s.selfPos,selfName:s.selfName,checkerPos:s.checkerPos,checkerName:s.checkerName},
       edu:{type:s.educationType,school:s.schoolName,age:s.schoolYears,add:s.extraYears,spe:!!s.specialSchool},
@@ -260,7 +274,7 @@
     who:'<h3>대상자</h3><p>소속·성명·직위를 입력하세요. 엑셀 호봉획정표에도 함께 반영됩니다.</p>',
     edu:'<h3>학력</h3><p>졸업학교와 실제 학령을 입력하세요. 학력 가감은 학령 − 16 + 가산연수 + 특수학교 가산으로 계산합니다. 가산연수는 증빙에 따라 확인하세요.</p>',
     cert:'<h3>자격면허 · 기산호봉</h3><p>자격면허명과 기산호봉을 입력하세요. 1급 9호봉·2급 8호봉·준교사 및 실기교사 5호봉입니다. 1정 취득일은 승급기록에도 반영됩니다.</p>',
-    date:'<h3>임용일자 · 획정기준일</h3><p>임용 후 경력은 획정기준일 전날까지 계산합니다. 초임일에 획정하는 경우 두 날짜를 같게 입력하세요.</p>',
+    date:'<h3>임용일자 · 획정기준일</h3><p>임용 후 경력은 획정기준일 전날까지 계산합니다. 초임일에 획정하는 경우 두 날짜를 같게 입력하세요.</p><p><b>14호봉 상한</b>은 ① 10년 이상 근무 후 퇴직하여 퇴직연금일시금을 지급받거나 연금 수급 개시연령에 도달해 퇴직연금을 지급받게 되는 사람이 기간제교원으로 재임용된 경우, ② 명예퇴직 후 재임용된 경우, ③ 정년퇴직 후 재임용된 경우에만 적용됩니다. 단순히 기간제교원으로 5년 이상 근무했다는 사실만으로는 적용되지 않습니다.</p>',
     pre:'<h3>임용 전 경력</h3><p>시작일·산입 마지막 날·경력 유형·환산율을 입력하세요. 경력이 없으면 경력 없음에 체크하세요. 중복 기간과 증빙을 확인하세요.</p>',
     post:'<h3>임용 후 경력</h3><p>임용일 이후 발령 순서로 시작일을 입력합니다. 종료일은 자동입니다. 휴직과 복직은 각각 행을 추가하세요.</p>',
     sign:'<h3>작성자 · 본인 · 확인자</h3><p>각 직위와 성명을 입력하세요. 엑셀 서식의 확인란에 반영됩니다.</p>'
