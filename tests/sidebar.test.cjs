@@ -16,6 +16,11 @@ const $=id=>w.document.getElementById(id),fill=(id,value)=>{$(id).value=value;$(
  assert.equal(data.settings.personName,'시험대상');assert.equal(data.settings.writerName,'작성');assert.equal(data.careers.length,8);assert.equal(data.settings.appointDate,'2006-09-01');assert.equal(data.settings.standardDate,'2021-03-01');
  const result=w.Hobong.calculate(data);assert.equal(result.result.step,25);assert.equal(w.Hobong.iso(result.result.next),'2021-07-01');
  fill('schoolYears','-1');captured=null;$('btnExcel').click();assert.equal(captured,null);assert.equal($('resultStep').textContent,'입력 확인');
+ assert.equal($('eventBody').children.length,0,'invalid input hides promotion records');
+ let prints=0;w.print=()=>prints++;
+ for(const b of w.document.querySelectorAll('[data-rail=print]'))b.click();
+ $('btnPrint').click();assert.equal(prints,0,'all print paths reject invalid input');
  $('btnNew').click();assert.equal($('personName').value,'');assert.equal($('writerName').value,'');
  console.log('PASS: seven navigation targets, completion, example, identity export, XLSX round-trip, invalid-output guard, new person');w.close();
 })().catch(e=>{console.error(e);w.close();process.exitCode=1;});
+

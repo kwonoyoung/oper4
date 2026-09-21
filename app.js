@@ -132,7 +132,7 @@
     $('railProgressText').textContent=`${done}/7`;$('railProgressBar').style.width=`${done/7*100}%`;
     document.querySelectorAll('[data-section]').forEach((btn,i)=>{btn.parentElement.classList.toggle('done',checks[i]);btn.querySelector('em').textContent=checks[i]?'완료':'미입력';});
     $('issues').innerHTML=warnings.length?warnings.map(w=>`<li>${html(w)}</li>`).join(''):'<li>입력 오류 없음 — 경력 증빙과 적용 환산율을 대조해 주세요.</li>';
-    $('eventBody').innerHTML=result.events.slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
+    $('eventBody').innerHTML=(current?result.events:[]).slice().reverse().map(e=>`<tr><td>${H.iso(e.date)}</td><td>${html(e.type)}</td><td>${e.step}호봉</td><td>${e.period.y}년</td><td>${e.period.m}월 ${e.period.d}일</td><td>${data.settings.reason==='계약제교원 임용'&&e.date===H.parse(data.settings.standardDate)?'없음':H.iso(e.next)}</td></tr>`).join('');
     $('childBody').innerHTML=Object.entries(result.post.children).flatMap(([child,items])=>items.map(r=>`<tr><td>${child==='1'?'첫째':'둘째'}</td><td>${H.iso(r.start)}</td><td>${H.iso(r.end)}</td><td>${H.text(H.split(r.days))}</td><td>${H.text(H.split(r.counted))}</td></tr>`)).join('');
   }
   function apply(data) {
@@ -204,7 +204,7 @@
     const action=btn.dataset.rail;
     if(action==='example') example();
     if(action==='excel') exportExcel();
-    if(action==='print') window.print();
+    if(action==='print') $('btnPrint').click();
     if(action==='save') save(true);
     if(action==='reset') $('btnReset').click();
     if(action==='help'){document.querySelectorAll('[data-rail]').forEach(b=>b.classList.toggle('on',b===btn));$('helpside').classList.remove('min');$('helpBody').innerHTML=helpText.help;$('helpside').scrollIntoView({behavior:'smooth'});}
@@ -212,7 +212,7 @@
   });
   $('btnSave').onclick=()=>save(true);$('btnPrint').onclick=()=>{recalculate();if(!canExport){toast('입력 확인의 오류를 먼저 수정하세요.');return;}body.querySelectorAll('tr').forEach(r=>r.hidden=false);window.print();};$('btnExample').onclick=example;$('btnExcel').onclick=exportExcel;
   $('btnExportJson').onclick=()=>download('교육공무원_호봉획정_백업.json',JSON.stringify(collect(),null,2),'application/json');
-  $('jsonFile').onchange=async e=>{try{if(e.target.files[0]){apply(JSON.parse(await e.target.files[0].text()));save();toast('자료를 불러왔습니다.');}}catch(err){alert('불러오기 실패: '+err.message);}finally{e.target.value='';}};
+  $('jsonFile').onchange=async e=>{try{if(e.target.files[0]){const data=JSON.parse(await e.target.files[0].text());if(!data||!data.settings||!Array.isArray(data.careers)||data.careers.some(r=>!r||typeof r!=='object'))throw new Error('호봉획정 JSON 형식이 아닙니다.');if(!confirm('현재 입력을 선택한 JSON 자료로 바꿀까요?'))return;download('호봉획정_JSON불러오기전_백업.json',JSON.stringify(collect(),null,2),'application/json');apply(data);save();toast('자료를 불러왔습니다.');}}catch(err){alert('불러오기 실패: '+err.message);}finally{e.target.value='';}};
   $('btnReset').onclick=()=>{if(confirm('현재 브라우저의 호봉 입력자료를 초기화할까요? 먼저 JSON으로 백업할 수 있습니다.')){clearTimeout(timer);timer=null;localStorage.removeItem(KEY);localStorage.removeItem(OLD);location.reload();}};
   const helpText={
     help:'<h3>사용설명서</h3><p>① 왼쪽 7개 항목을 차례로 입력합니다. ② 임용 전 경력은 산입 마지막 날까지, 임용 후 경력은 시작일을 입력합니다. ③ 입력 확인 탭의 오류를 수정한 뒤 엑셀 저장·인쇄를 사용하세요.</p><p>입력값은 자동 저장됩니다. 새 대상자는 현재 자료를 JSON으로 내려받은 뒤 새 입력을 시작합니다. 엑셀 불러오기는 이 프로그램의 표준 서식을 지원합니다.</p>',
@@ -272,3 +272,4 @@
   try{const raw=localStorage.getItem(KEY)||localStorage.getItem(OLD);if(raw){apply(JSON.parse(raw));restored=true;}}catch(e){toast('저장 자료를 읽지 못했습니다. 원본은 유지됩니다.');}
   if(!restored){addRow();addRow({scope:'post',desc:'근무'});recalculate();}
 })();
+
