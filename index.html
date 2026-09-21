@@ -552,7 +552,7 @@ table.sheet+*{margin-top:0}
 <button class="rail-act pri span2" id="btnExcel" type="button" title="현재 계산 결과를 엑셀(xlsx) 4개 시트로 저장">📊 엑셀(xlsx) 저장</button>
 <button class="rail-act" id="btnPrint" type="button" title="호봉획정표를 인쇄하거나 PDF로 저장">🖨 인쇄·PDF</button>
 <button class="rail-act" id="btnSave" type="button" title="현재 입력 자료를 이 브라우저에 저장">현재 자료 저장</button>
-<button class="rail-act" id="btnExportJson" type="button" title="입력 자료를 JSON 파일로 백업">JSON 백업</button>
+<button class="rail-act" id="btnExportJson" type="button" title="입력 자료를 JSON 파일로 백업" hidden>JSON 백업</button>
 <button class="rail-act" id="btnNew" type="button">새 대상자</button>
 <button class="rail-act dang" id="btnReset" type="button" title="입력 자료와 저장된 내용을 모두 지웁니다">전체 초기화</button>
 </li>
@@ -686,7 +686,7 @@ table.sheet+*{margin-top:0}
 <button class="btn go" id="btnAddPost" type="button">+ 임용 후 경력</button>
 <button class="btn ok" id="btnAddLeave" type="button">+ 휴직 행</button>
 <button class="btn ok" id="btnAddDegree" type="button">+ 학위 행</button>
-<label class="btn sm2" for="jsonFile" style="cursor:pointer;margin:0;font-weight:700">JSON 불러오기</label>
+<label class="btn sm2" for="jsonFile" style="cursor:pointer;margin:0;font-weight:700" hidden>JSON 불러오기</label>
 <input type="file" id="jsonFile" accept=".json" hidden>
 </div>
 </section>
